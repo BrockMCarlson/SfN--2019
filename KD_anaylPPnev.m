@@ -1,8 +1,8 @@
 % example code for ppNEV files
 clear 
 
-brdrname      = 'E:\LaCie\BRFSdays ppnev rfori and brfs'; 
-BRdatafile    = '160104_E_rfori002'; 
+brdrname      = 'G:\LaCie\BRFSdays ppnev rfori and brfs'; 
+BRdatafile    = '160102_E_brfs001'; 
 filename      = [brdrname '/' BRdatafile]; 
 
 % load ppNEV

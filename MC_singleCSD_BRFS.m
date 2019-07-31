@@ -1,7 +1,7 @@
 % BMC edit of analyze EVP from MLanalysisONLINE
 
 BRdatafile = '151231_E_brfs001';
-drname = 'E:\LaCie\all BRFS\151231_E';
+drname = 'G:\LaCie\all BRFS\151231_E';
 extension = 'ns2'; % THIS CODE DOES NOT DOWNSAMPLE OR FILTER DATA
 el = 'eD';
 sortdirection = 'ascending'; %  descending (NN) or ascending (Uprobe)
