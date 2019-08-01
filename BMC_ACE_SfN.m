@@ -26,7 +26,7 @@ clear
 close all
 
 %% 1. Editable Variables
-condition = 'biPSWsoa'; %for SfN -- 'biPSWsoa','biNPSWsoa','dicopWsoa_PSflash','dicopWsoa_NPSflash'. 
+condition = 'dicopWsoa_NPSflash'; %for SfN -- 'biPSWsoa','biNPSWsoa','dicopWsoa_PSflash','dicopWsoa_NPSflash'. 
 % Other --'biPSNOsoa','biNPSNOsoa','dicopNOsoa','biPSWsoa','dichopWsoa_fullTrialPS','dicopWsoa_PSflash',
 savetitle = strcat('PerceptPlot_',condition,'filtered');
 pre = 100;

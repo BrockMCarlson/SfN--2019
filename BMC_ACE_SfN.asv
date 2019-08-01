@@ -25,9 +25,8 @@ clear
 close all
 
 %% 1. Editable Variables
-condition = 'biPSWsoa'; %for SfN -- 'biPSWsoa','biNPSWsoa','dicopWsoa_PSflash','dicopWsoa_NPSflash'. 
 % Other --'biPSNOsoa','biNPSNOsoa','dicopNOsoa','biPSWsoa','dichopWsoa_fullTrialPS','dicopWsoa_PSflash',
-savetitle = strcat(condition,'filtered');
+savetitle = strcat('PerceptPlot_',condition,'filtered');
 pre = 100;
 post = 800;
 sinkAllocate = 'BMC_DfS'; %'BMC_DfS','BMC_ChanNum','Old_DfS','Old_ChanNum'
@@ -98,7 +97,7 @@ cd(sessionDay)
         [pEvC,pEvT] = parsEventCodesML(EventCodes,EventTimes);
 
 % 3.d. get LFP for full session day (Channels x timepoints)
-[xLFP,EventCodes,EventTimes] = getLFP(filenameNs2,'ns2',SessionParamsForCondition.V1bank(a),SessionParamsForCondition.sortdirection(a),sessionDay);
+[xLFP,EventCodes,EventTimes] = getLFP(filenameNs2,'ns2',SessionParamsForCondition.V1bank{a},SessionParamsForCondition.sortdirection(a),sessionDay);
 fc = 50;
 fs = 1000;
 [butter_b,butter_a] = butter(4,fc/(fs/2)); 
@@ -371,7 +370,7 @@ clearvars -except savetitle AllCSDaligned a allfolders condition pre post Sessio
 % 5. Average CSD Effect (ACE)
 ACE = squeeze(nanmean(AllCSDaligned,3));
 
-cd('G:\LaCie\SfN 2019')
+cd('G:\LaCie\SfN 2019--figsAndMatVars')
 save(strcat(savetitle,'.mat'))
 
 load gong.mat;

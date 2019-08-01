@@ -71,7 +71,7 @@ switch AnalyzeSink
         sinkAvgAllCSDaligned.diWsoaNPS     = squeeze(cutAllCSDaligned.diWsoaNPS(6,:,:))';  
         sinkAvgAllCSDaligned.biWsoaPS	= squeeze(cutAllCSDaligned.biWsoaPS(6,:,:))'; 
         sinkAvgAllCSDaligned.diWsoaPS     = squeeze(cutAllCSDaligned.diWsoaPS(6,:,:))';  
-        titletext1 = 'CSD of upper sink. Cortical depth of 0.7.';
+        titletext1 = 'CSD of upper sink. Cortical depth of 0.7.',' dichoptic simultaneous vs dichoptic with soa.',' Same stimulus different percept.';
 end
 
 
@@ -133,7 +133,7 @@ plot(postStimTM,blSink.biWsoaPS(n,:),'color','g','DisplayName','monocPS'); hold 
 plot(postStimTM,blSink.biWsoaNPS(n,:),'color','b','DisplayName','monocNPS'); hold on;
 
 
-titletext = {titletext2, [titletext1]};
+titletext = {titletext2, titletext1};
     title({titletext2,titletext1})
     vline(0)
     hline(0)
@@ -142,10 +142,10 @@ titletext = {titletext2, [titletext1]};
     ax = gca;
     ax.YRuler.Exponent = 0;
 
-cd('G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\PerceptPlot')  
-if n == 1
-    export_fig('PerceptPlot2','-pdf','-nocrop') 
-else
-    export_fig('PerceptPlot2','-pdf','-nocrop','-append')
-end
+% cd('G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\PerceptPlot')  
+% if exist('PerceptPlot.pdf') == 0
+%     export_fig('PerceptPlot','-pdf','-nocrop') 
+% else
+%     export_fig('PerceptPlot','-pdf','-nocrop','-append')
+% end
 end
