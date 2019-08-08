@@ -1,22 +1,24 @@
 
 addpath(genpath('G:\LaCie\all BRFS'));
-drname        = {'G:\LaCie\all BRFS\190319_B\','G:\LaCie\all BRFS\190327_B\',...
-    'G:\LaCie\all BRFS\190410_B\','G:\LaCie\all BRFS\190715_B\'};
-BRdatafile    = {'190319_B_evp002','190327_B_evp003','190410_B_evp006','190715_B_evp003'};
+drname        = {'G:\LaCie\all BRFS\160102_E\'};%%,'G:\LaCie\all BRFS\160427_E\',...
+   %% 'G:\LaCie\all BRFS\160510_E\'};
+BRdatafile    = {'160102_E_rfori001'};%%'160427_E_brfs001','160510_E_brfs001'};
+exportfigtext = {'rfori_160102'};%%'brfs_60427','brfs_160510'};
+
 
 extension     = 'ns2'; % THIS CODE DOES NOT DOWNSAMPLE OR FILTER DATA
-el            = {'eD','eD','eD','eA'};
-sortdirection = 'ascending'; %  descending (NN) or ascending (Uprobe)
+el            = {'eD'}%,'eD','eD'};
+sortdirection = 'descending'; %  descending (NN) or ascending (Uprobe)
 pre           = 50;
 post          = 250;
 chans         = [1:32];
-trls          = [1:200];
+trls          = [1:100];
 
 
 flag_subtractbasline = false;
 flag_halfwaverectify = false;
 
-for a = 1:4
+for a = 1:size(BRdatafile,2)
 cd(drname{a})
 clear LFP EventCodes EventTimes DAT TM CSD CSDf corticaldepth y
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,7 +62,8 @@ end
 %title(BRdatafile{a},'interpreter','none')
 
 %%
-CSD = calcCSD(EVP);
+predivideCSD = calcCSD(EVP);
+CSD = predivideCSD./4;
 if flag_subtractbasline
    CSD = bsxfun(@minus,CSD,mean(CSD(:,TM<0),2));
 end
@@ -73,6 +76,7 @@ subplot(1,2,1)
 f_ShadedLinePlotbyDepth(CSD,corticaldepth,TM,[],1)
 title(BRdatafile{a},'interpreter','none')
 set(gcf,'Position',[1 40  700   785]);
+
 %%
 CSDf = filterCSD(CSD);
 
@@ -91,14 +95,14 @@ set(gca,'CLim',[-climit climit],'Ydir',ydir,'Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
 c = colorbar;
-caxis([-200 200])
 
-%% Save and Append a pdf
-cd('G:\LaCie\SfN 2019\SfN 2019 figs\L4 sink 2019 brfs sessions')
-if a ==1
-    export_fig('NonSubBaseline_L4NewSessions','-pdf','-nocrop') 
-else
-    export_fig('NonSubBaseline_L4NewSessions','-pdf','-nocrop','-append')
-end
+
+% % % % %% Save and Append a pdf
+% % % % cd('G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\L4 sink 2016 brfs sessions')
+% % % % % % % if a ==1
+% % % %     export_fig(exportfigtext{a},'-jpg','-nocrop') 
+% % % % % % else
+% % % % % %     export_fig(exportfigtext,'-pdf','-nocrop','-append')
+% % % % % % % end
 
 end

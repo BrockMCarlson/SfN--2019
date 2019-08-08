@@ -17,4 +17,8 @@ for i = 1:size(pEvC,2)
         end
     end
 end
+<<<<<<< Updated upstream
 end
+=======
+end
+>>>>>>> Stashed changes

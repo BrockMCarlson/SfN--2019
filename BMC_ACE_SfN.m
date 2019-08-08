@@ -22,13 +22,18 @@
 
 % End varible goal: SessAvgCSD (day x channels [row] x CSD values at all 800 ms [column] )
 
-clear
-close all
+
 
 %% 1. Editable Variables
-condition = 'dicopWsoa_NPSflash'; %for SfN -- 'biPSWsoa','biNPSWsoa','dicopWsoa_PSflash','dicopWsoa_NPSflash'. 
+condition = {'biPSWsoa','biNPSWsoa','dicopWsoa_PSflash','dicopWsoa_NPSflash'}; 
+%for SfN -- 'biPSWsoa','biNPSWsoa','dicopWsoa_PSflash','dicopWsoa_NPSflash'. 
 % Other --'biPSNOsoa','biNPSNOsoa','dicopNOsoa','biPSWsoa','dichopWsoa_fullTrialPS','dicopWsoa_PSflash',
-savetitle = strcat('PerceptPlot_',condition,'filtered');
+
+for c = 1:size(condition,1)
+clearvars -except condition
+
+
+savetitle = strcat('PerceptPlot_',condition{c},'filtered');
 pre = 100;
 post = 800;
 sinkAllocate = 'BMC_DfS'; %'BMC_DfS','BMC_ChanNum','Old_DfS','Old_ChanNum'
@@ -111,7 +116,7 @@ LFP = filtLFP'; %(Channels x tiempoints)
 %   MAJOR CONDITIONAL STATEMENT HERE. CALL FROM SESSIONPARAMS FOR PS/NPS
 conditioncount = 0; 
 clear gratingOnsets
-switch condition
+switch condition{c}
     
  case 'biPSNOsoa'
     for  e = 1:length(pEvC)
@@ -374,6 +379,7 @@ ACE = squeeze(nanmean(AllCSDaligned,3));
 
 cd('G:\LaCie\SfN 2019--figsAndMatVars')
 save(strcat(savetitle,'.mat'))
+end
 
 load gong.mat;
 soundsc(y);
