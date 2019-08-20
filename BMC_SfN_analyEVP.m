@@ -2,12 +2,12 @@
 addpath(genpath('G:\LaCie\all BRFS'));
 drname        = {'G:\LaCie\all BRFS\160102_E\'};%%,'G:\LaCie\all BRFS\160427_E\',...
    %% 'G:\LaCie\all BRFS\160510_E\'};
-BRdatafile    = {'160102_E_rfori001'};%%'160427_E_brfs001','160510_E_brfs001'};
-exportfigtext = {'rfori_160102'};%%'brfs_60427','brfs_160510'};
+BRdatafile    = {'160102_E_brfs001'};%%'160427_E_brfs001','160510_E_brfs001'};
+exportfigtext = {'brfs_160102'};%%'brfs_60427','brfs_160510'};
 
 
 extension     = 'ns2'; % THIS CODE DOES NOT DOWNSAMPLE OR FILTER DATA
-el            = {'eD'}%,'eD','eD'};
+el            = {'eD'};%,'eD','eD'};
 sortdirection = 'descending'; %  descending (NN) or ascending (Uprobe)
 pre           = 50;
 post          = 250;
@@ -15,7 +15,7 @@ chans         = [1:32];
 trls          = [1:100];
 
 
-flag_subtractbasline = false;
+flag_subtractbasline = true;
 flag_halfwaverectify = false;
 
 for a = 1:size(BRdatafile,2)
@@ -38,6 +38,7 @@ if isempty(trls)
 else
 EVP = mean(DAT(:,:,trls),3);
 end
+
 % deal w/ bad channes
 switch BRdatafile{a}
    case {'151208_E_rfori001' '151208_E_rfori002','151218_I_evp002'}

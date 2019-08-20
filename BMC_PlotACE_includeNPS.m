@@ -7,8 +7,8 @@ clear
 pre = 100;
 post = 800;
 TM = -pre:1:post;
-AnalyzeSink = 'upper'; % 'lower' or 'upper'
-exportfigtext = 'PerceptPlot2_upper';
+AnalyzeSink = 'lower'; % 'lower' or 'upper'
+exportfigtext = 'PerceptPlot_newIdx';
 
 color.biNOsoa = [5,113,176]/255; % light purple
 color.diWsoaNPS = [202,0,32]/255;% light green
@@ -143,10 +143,10 @@ plot(postStimTM,blSink.biWsoaNPS(n,:),'color','b','DisplayName','monocNPS'); hol
     ax = gca;
     ax.YRuler.Exponent = 0;
 
-cd('G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\PerceptPlot')  
-if n == 1
-    export_fig(exportfigtext,'-pdf','-nocrop') 
-else
-    export_fig(exportfigtext,'-pdf','-nocrop','-append')
-end
+% % cd('G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\PerceptPlot')  
+% % if n == 1
+% %     export_fig(exportfigtext,'-pdf','-nocrop') 
+% % else
+% %     export_fig(exportfigtext,'-pdf','-nocrop','-append')
+% % end
 end

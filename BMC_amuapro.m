@@ -8,7 +8,7 @@ function [ jnmSig ] = jnm_amuapro( jnmMUA, deci, hpc, lpc1, nyq )
 %August 4, 2016
 %v1.0.0
 %   Generate analog mua signal from raw signal
-lpc2 = l0pc1 / 2;
+lpc2 = lpc1 / 2;
 hWn = hpc / nyq;
 [ bwb, bwa ] = butter( 4, hWn, 'high' );
 hpMUA = filtfilt( bwb, bwa, jnmMUA );

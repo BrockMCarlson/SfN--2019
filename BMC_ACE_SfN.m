@@ -30,7 +30,7 @@ condition = {'biPSWsoa','biNPSWsoa','dicopWsoa_PSflash','dicopWsoa_NPSflash'};
 % Other --'biPSNOsoa','biNPSNOsoa','dicopNOsoa','biPSWsoa','dichopWsoa_fullTrialPS','dicopWsoa_PSflash',
 
 for c = 1:size(condition,1)
-clearvars -except condition
+clearvars -except condition c
 
 
 savetitle = strcat('PerceptPlot_',condition{c},'filtered');
@@ -46,6 +46,7 @@ cd(baseDirectory)
 load('SessionParams.mat')
 switch sinkAllocate
     case 'BMC_DfS'
+        
         SessionParams.EvalSink = SessionParams.BMC_DfS;
     case 'Old_DfS'
         SessionParams.EvalSink = SessionParams.Old_DfS;
@@ -79,7 +80,7 @@ timerange = [-pre:post];
 AllCSDaligned(:,:,:) = nan(100,[size(timerange,2)],[size(SessionParamsForCondition.Date,1)]);
 
 for a = 1:size(SessionParamsForCondition.Date,1) %big loop
-    clearvars -except savetitle AllCSDaligned a allfolders condition pre post SessionParamsForCondition 
+    clearvars -except savetitle AllCSDaligned a allfolders condition pre post SessionParamsForCondition c
     disp(a);
 % 3.b. enter folder
 for b = 1:size(allfolders,1)
@@ -278,9 +279,7 @@ switch condition{c}
     column = 1;  
   
    end
-   
- 
-   
+    
  case 'dicopWsoa_PSflash'
    for  e = 1:length(pEvC)
     if strcmp('dCOS',grating.stim(e))           && ... 
@@ -372,7 +371,7 @@ end
 
 
 end %end of 'a' loop, #BigLoop.
-clearvars -except savetitle AllCSDaligned a allfolders condition pre post SessionParamsForCondition 
+clearvars -except savetitle AllCSDaligned a allfolders condition pre post SessionParamsForCondition c
 
 % 5. Average CSD Effect (ACE)
 ACE = squeeze(nanmean(AllCSDaligned,3));
