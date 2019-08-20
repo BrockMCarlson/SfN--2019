@@ -2,8 +2,8 @@
 addpath(genpath('G:\LaCie\all BRFS'));
 drname        = {'G:\LaCie\all BRFS\160102_E\'};%%,'G:\LaCie\all BRFS\160427_E\',...
    %% 'G:\LaCie\all BRFS\160510_E\'};
-BRdatafile    = {'160102_E_brfs001'};%%'160427_E_brfs001','160510_E_brfs001'};
-exportfigtext = {'brfs_160102'};%%'brfs_60427','brfs_160510'};
+BRdatafile    = {'160102_E_rfori002'};%%'160427_E_brfs001','160510_E_brfs001'};
+exportfigtext = {'rfori_160102'};%%'brfs_60427','brfs_160510'};
 
 
 extension     = 'ns2'; % THIS CODE DOES NOT DOWNSAMPLE OR FILTER DATA

@@ -7,8 +7,8 @@ directory = 'G:\LaCie\all BRFS\160102_E';
 sinkAllocate = 'BMC_DfS';
 pre = 50;
 post = 250;
-ydir = 'reverse';
 chans = [1:32];
+subBaseline = true;
 
 %% LOAD AND ORDER PINS
 %Load session params
@@ -199,6 +199,10 @@ triggerpoints1 = EventTimes1(EventCodes == 23 | EventCodes == 25 | EventCodes ==
         end
     end
     csdAvg = mean(csdTrig,3);
+    if subBaseline == true
+        csdBL  = mean(csdAvg(:,csdTM<0),2);
+        csdAvg = csdAvg - csdBL;
+    end
     csdPad = padarray(csdAvg,[1 0],NaN,'replicate');
     csdFilter = filterCSD(csdPad);
     
@@ -219,6 +223,11 @@ triggerpoints1 = EventTimes1(EventCodes == 23 | EventCodes == 25 | EventCodes ==
 figure
 imagesc(csdTM,chans,csdFilter); colormap(flipud(jet));
 climit = max(abs(get(gca,'CLim'))*.8);
+if PARAMS.SortDirection == 'descending'
+    ydir = 'reverse';
+elseif PARAMS.SortDirection == 'ascending'
+    ydir = 'normal';
+end
 set(gca,'CLim',[-climit climit],'Ydir',ydir,'Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')

@@ -7,6 +7,9 @@ directory = 'G:\LaCie\all BRFS\160102_E';
 sinkAllocate = 'BMC_DfS';
 pre = 50;
 post = 250;
+ydir = 'reverse';
+chans = [1:32];
+subBaseline = false;
 
 %% LOAD AND ORDER PINS
 %Load session params
@@ -167,9 +170,10 @@ count = 0;
     end
     
     Result_sub = subThis(:,1)-subThis(:,2);
-    Result_mean = mean(Result_sub);
+    Result_mean = mean(Result_sub);%this is in sample number
+    Result_timeoffset = Result_mean/30; % takes output time in 30kHz and puts it in 1kHz, or ms.
 %%%%%%%%%%%%%%%%%% AVG offset time is 128.714109150952 samples
-%%%%%%%%%%%%%%%%%% That is, the photo diode occurs 128/30 which is 4.2ms
+%%%%%%%%%%%%%%%%%% That is, the photo diode occurs 128/30 which is 4.29ms
 %%%%%%%%%%%%%%%%%% 
 %% TRIGGER TO pEvC/pEvT  
 EventCodes = NEV.Data.SerialDigitalIO.UnparsedData - 128;
@@ -196,6 +200,10 @@ triggerpoints1 = EventTimes1(EventCodes == 23 | EventCodes == 25 | EventCodes ==
         end
     end
     csdAvg = mean(csdTrig,3);
+    if subBaseline == true
+        csdBL  = mean(csdAvg(:,csdTM<0),2);
+        csdAvg = csdAvg - csdBL;
+    end
     csdPad = padarray(csdAvg,[1 0],NaN,'replicate');
     csdFilter = filterCSD(csdPad);
     
@@ -214,10 +222,11 @@ triggerpoints1 = EventTimes1(EventCodes == 23 | EventCodes == 25 | EventCodes ==
 %% PLOT 1,2,3,4,5
 % LFP, CSDshadedLine, fCSD, aMUA, PSD
 figure
-ydir = 'reverse';
-imagesc(csdTM,[1:32],csdFilter); colormap(flipud(jet));
+imagesc(csdTM,chans,csdFilter); colormap(flipud(jet));
 climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'Ydir',ydir,'Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
 c = colorbar;
+title(strcat('CSD for',filename), 'Interpreter', 'none')
+
