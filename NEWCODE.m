@@ -143,6 +143,7 @@ end
 % Trigger to BNC
 EventCodes = NEV.Data.SerialDigitalIO.UnparsedData - 128;
 EventTimes = double(NEV.Data.SerialDigitalIO.TimeStamp); 
+grating = readgGrating(readGRATINGfile);
     [pEvC,pEvT] = parsEventCodesML(EventCodes,EventTimes);
     [pEvT_photo,tf] = pEvtPhoto2(readGRATINGfile,pEvC,pEvT,mode(grating.ypos),[],'ainp1',0);
 count = 0;
