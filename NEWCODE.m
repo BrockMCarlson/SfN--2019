@@ -7,6 +7,8 @@ directory = 'G:\LaCie\all BRFS\160102_E';
 sinkAllocate = 'BMC_DfS';
 pre = 50;
 post = 250;
+ydir = 'reverse';
+chans = [1:32];
 
 %% LOAD AND ORDER PINS
 %Load session params
@@ -46,32 +48,41 @@ if contactNum ~= PARAMS.el
     error('Houston we have a problem')
 end
 
-for i = 1:contactNum
-    disp(strcat('i=',num2str(i)))
-    pinNum = sprintf('c:%u',i);
-    NS2         = openNSx(readNS2file,pinNum,'read','uV');
-    NS6         = openNSx(readNS6file,pinNum,'read','uV');
-    %preallocate
-        if i ==1
-           sampleNumNS2 = length(NS2.Data); 
-           ns2DAT = zeros(contactNum,sampleNumNS2);
-           sampleNumNS6 = length(NS6.Data);
-           ns6DAT = zeros(contactNum,sampleNumNS6);
-        end
-    %sort electrode contacts for Plexon DfS
-    contactName = strcat(PARAMS.V1bank{1,1},sprintf('%02d',i));
-    idx = contains(contactLabels,contactName);
-    
-    ns2DAT(idx,:) = NS2.Data;
-    ns6DAT(idx,:) = NS6.Data;
-clear pinNum NS2 NS6 contactName idx
+count = 0;
+for i = 1:size(contactLogical,2)
+    if contactLogical(i) == 1
+        count = count+1;
+        disp(strcat('i=',num2str(count)))
 
+        %sort electrode contacts for Plexon DfS
+        contactName = strcat(PARAMS.V1bank{1,1},sprintf('%02d',i));
+        idx = contains(contactLabels,contactName);
+        contactPosition = find(idx);
+        pinNum = sprintf('c:%u',contactPosition);
+        NS2         = openNSx(readNS2file,pinNum,'read','uV');
+        NS6         = openNSx(readNS6file,pinNum,'read','uV');
+        %preallocate
+            if count == 1
+               sampleNumNS2 = length(NS2.Data); 
+               ns2DAT = zeros(contactNum,sampleNumNS2);
+               sampleNumNS6 = length(NS6.Data);
+               ns6DAT = zeros(contactNum,sampleNumNS6);
+               elLabelsOut = strings(contactNum,1);
+            end
+        ns2DAT(count,:) = NS2.Data;
+        ns6DAT(count,:) = NS6.Data;
+        elLabelsOut(count,:) = contactName;
+        clear pinNum NS2 NS6 contactName idx
+    else
+        continue
+    end
 end
 %flip if NN,  most superficial channel on top, regardless of number
 if strcmp(string(PARAMS.SortDirection), 'descending')
     disp('flipped for NN array')
     ns2DAT = flipud(ns2DAT);
     ns6DAT = flipud(ns6DAT);
+    elLabelsOut = flipud(elLabelsOut);
 end
     
     
@@ -136,13 +147,13 @@ end
     ns6CSD(:,:) = (-1*calced*ns6LFP);
 
     
-%% TRIGGER TO DIODE ====> I get an error here, there is a 128ms offset
+%% TRIGGER TO DIODE ====> Problem Solved perhaps?
 % trigger to BNC and to pEvC/pEvT to double-check against photodiode
 % get triggered LFP, CSD, and aMUA out.
 
 % Trigger to BNC
 EventCodes = NEV.Data.SerialDigitalIO.UnparsedData - 128;
-EventTimes = double(NEV.Data.SerialDigitalIO.TimeStamp); 
+EventTimes = double(NEV.Data.SerialDigitalIO.TimeStamp); %30kHz samples
 grating = readgGrating(readGRATINGfile);
     [pEvC,pEvT] = parsEventCodesML(EventCodes,EventTimes);
     [pEvT_photo,tf] = pEvtPhoto2(readGRATINGfile,pEvC,pEvT,mode(grating.ypos),[],'ainp1',0);
@@ -158,18 +169,20 @@ count = 0;
     end
     
     Result_sub = subThis(:,1)-subThis(:,2);
-    Result_mean = mean(Result_sub);
-%%%%%%%%%%%%%%%%%% AVG offset time is 128.714109150952
-%%%%%%%%%%%%%%%%%% That is, the photo diode occurs 128.7ms before the
-%%%%%%%%%%%%%%%%%% event code.
+    Result_mean = mean(Result_sub);%this is in sample number
+    Result_timeoffset = Result_mean/30; % takes output time in 30kHz and puts it in 1kHz, or ms.
+%%%%%%%%%%%%%%%%%% AVG offset time is 128.714109150952 samples
+%%%%%%%%%%%%%%%%%% That is, the photo diode occurs 128/30 which is 4.29ms
+%%%%%%%%%%%%%%%%%% 
 %% TRIGGER TO pEvC/pEvT  
+EventCodes = NEV.Data.SerialDigitalIO.UnparsedData - 128;
 EventTimes30 = NEV.Data.SerialDigitalIO.TimeStampSec .* 30000; %ns6 Sampling
     % USE THE NS6 SAMPLING LATER TO DOUBLE-CHECK BOTH METHODS
 EventTimes1 = floor(NEV.Data.SerialDigitalIO.TimeStampSec .* 1000); %ms, to match 1kHz
 triggerpoints1 = EventTimes1(EventCodes == 23 | EventCodes == 25 | EventCodes == 27 | EventCodes == 29| EventCodes == 31);
     % remove TPs that are too close to start or end
-    triggerpoints1(triggerpoints30 - pre  < 0) = [];
-    triggerpoints1(triggerpoints30 + post > size(ns2CSD,2)) = [];
+    triggerpoints1(triggerpoints1 - pre  < 0) = [];
+    triggerpoints1(triggerpoints1 + post > size(ns2CSD,2)) = [];
     % get dimn, preallocate
     numChan = size(ns2CSD, 1);
     numTriggers   = length(triggerpoints1);
@@ -204,10 +217,11 @@ triggerpoints1 = EventTimes1(EventCodes == 23 | EventCodes == 25 | EventCodes ==
 %% PLOT 1,2,3,4,5
 % LFP, CSDshadedLine, fCSD, aMUA, PSD
 figure
-ydir = 'reverse';
-imagesc(csdTM,[1:32],CSDf); colormap(flipud(jet));
+imagesc(csdTM,chans,csdFilter); colormap(flipud(jet));
 climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'Ydir',ydir,'Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
 c = colorbar;
+title(strcat('CSD for',filename), 'Interpreter', 'none')
+
