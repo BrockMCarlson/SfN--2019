@@ -7,8 +7,8 @@ directory = 'G:\LaCie\all BRFS\160102_E';
 sinkAllocate = 'BMC_DfS';
 pre = 50;
 post = 250;
-chans = [1:32];
 subBaseline = true;
+manualUv = true;
 
 %% LOAD AND ORDER PINS
 %Load session params
@@ -24,6 +24,9 @@ end
 % get info needed for day I'm analyzing
 dayID = strfind(SessionParams.Date',str2double(filename(1:6)));
 PARAMS = SessionParams(dayID,:);
+
+%Set Channel vector based on the number of electrode contacts
+chans = [1:PARAMS.el];
 
 %make names to load later
 cd(directory)
@@ -205,6 +208,11 @@ triggerpoints1 = EventTimes1(EventCodes == 23 | EventCodes == 25 | EventCodes ==
     end
     csdPad = padarray(csdAvg,[1 0],NaN,'replicate');
     csdFilter = filterCSD(csdPad);
+   
+    %%%%%%%%%%%%%%% ?????????? Does the uV output from openNSx not work?
+    if manualUv == true
+        csdFilter = csdFilter./4;
+    end
     
 %% POSTPROCESS
 % downsample and get PSD
@@ -231,6 +239,10 @@ end
 set(gca,'CLim',[-climit climit],'Ydir',ydir,'Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
-c = colorbar;
-title(strcat('CSD for',filename), 'Interpreter', 'none')
+clrbar = colorbar;
+title({'CSD code rewrite',filename}, 'Interpreter', 'none')
+xlabel('time (ms)')
+ylabel('Contacts indexed down from surface')
+clrbar.Label.String = 'nA/mm^3';
+set(gcf,'Position',[1 40 331 662]);
 
