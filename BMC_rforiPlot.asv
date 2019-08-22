@@ -242,11 +242,7 @@ end
 
 %% TRIGGER TO pEvC/pEvT at 1 kHz 
 triggerpoints.eventcodes = STIM.onsetsdown; % remove TPs that are too close to start or end
-triggerpoints.photo      = STIM_photo.onsetsdown;
-
-%%%%%%%%%%%%%%%%%%% END OF UPDATE ON 8/22/19. Finish pulling out the onsets
-%%%%%%%%%%%%%%%%%%% from the STIM variable and use that to trigger BOTH ns2
-%%%%%%%%%%%%%%%%%%% and ns6 data and compare the results in plots tomorrow.
+triggerpoints.photo      = STIM_photo.
     triggerpoints(triggerpoints - pre  < 0) = [];
     triggerpoints(triggerpoints + post > size(ns2CSD,2)) = [];
 
