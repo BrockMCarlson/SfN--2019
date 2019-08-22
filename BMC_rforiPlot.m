@@ -97,8 +97,8 @@ end
     fc = 50;
     fs = 1000;
     [butter_b,butter_a] = butter(4,fc/(fs/2));
-    ns2LFP = zeros(size(ns2DAT));
-    ns6LFP = zeros(size(ns6DAT));
+    ns2LFP = nan(size(ns2DAT));
+    ns6LFP = nan(size(ns6DAT));
     for j = 1:contactNum
         disp(strcat('j=',num2str(j)))
         clear ns2FiltVec ns6FiltVec
@@ -167,47 +167,50 @@ EventTimes = double(NEV.Data.SerialDigitalIO.TimeStamp); %30kHz samples
 grating = readgGrating(readGRATINGfile);
     [pEvC,pEvT] = parsEventCodesML(EventCodes,EventTimes);
     [pEvT_photo,tf] = pEvtPhoto2(readGRATINGfile,pEvC,pEvT,mode(grating.ypos),[],'ainp1',0);
-count = 0;
-    for cellidx = 1:42
-       for vecidx = 1:size(pEvT{1,cellidx},1)
-           if ~isnan(pEvT_photo{1,cellidx}(vecidx))
-               count = count+1;
-            subThis(count,1) = pEvT_photo{1,cellidx}(vecidx);
-            subThis(count,2) = pEvT{1,cellidx}(vecidx);
-           end
-       end
-    end
-    
-    Result_sub = subThis(:,1)-subThis(:,2);
-    Result_mean = mean(Result_sub);%this is in sample number
-    Result_timeoffset = Result_mean/30; % takes output time in 30kHz and puts it in 1kHz, or ms.
-%%%%%%%%%%%%%%%%%% AVG offset time is 128.714109150952 samples
-%%%%%%%%%%%%%%%%%% That is, the photo diode occurs 128/30 which is 4.29ms
-%%%%%%%%%%%%%%%%%% 
 
-%% TRIGGER to pEvC/pEvT at 30 kHz
-EventCodes = NEV.Data.SerialDigitalIO.UnparsedData - 128;
-EventTimes30 = NEV.Data.SerialDigitalIO.TimeStampSec .* 30000; %ns6 Sampling
-    % USE THE NS6 SAMPLING LATER TO DOUBLE-CHECK BOTH METHODS
-    %%%%%%% ???
-    %
-    %
 %% TRIGGER TO pEvC/pEvT at 1 kHz 
-EventTimes1 = floor(NEV.Data.SerialDigitalIO.TimeStampSec .* 1000); %ms, to match 1kHz
-triggerpoints1 = EventTimes1(EventCodes == 23 | EventCodes == 25 | EventCodes == 27 | EventCodes == 29| EventCodes == 31);
+EventCodes = NEV.Data.SerialDigitalIO.UnparsedData - 128;
+EventTimes = floor(NEV.Data.SerialDigitalIO.TimeStampSec .* 1000); %ms, to match 1kHz
+triggerpoints = EventTimes(EventCodes == 23 | EventCodes == 25 | EventCodes == 27 | EventCodes == 29| EventCodes == 31);
     % remove TPs that are too close to start or end
-    triggerpoints1(triggerpoints1 - pre  < 0) = [];
-    triggerpoints1(triggerpoints1 + post > size(ns2CSD,2)) = [];
-    % get dimn, preallocate
+    triggerpoints(triggerpoints - pre  < 0) = [];
+    triggerpoints(triggerpoints + post > size(ns2CSD,2)) = [];
+    
+ 
+    %32 channel loop.
+    numChanaMUA = size(aMUAdown, 1);
+    numTriggers = size(triggerpoints,2);
+    aMUAtrig    = NaN( numChanaMUA,[post + pre + 1],numTriggers);
+
+    %%% DATA MUST BE DOWNSAMPLED TO 1KH IN ORDER TO TRIGGER PROPERLY
+    for singleCh = 1:numChanaMUA 
+        for singleTrigger = 1:numTriggers
+            timeOfTrigger = triggerpoints(singleTrigger);
+            windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
+            aMUAtrig(singleCh,:,singleTrigger)= aMUAdown(singleCh,windowOfTrigger);   
+            % output is Ch x time x trial/triggerNumber
+        end
+    end
+    aMUAavg = mean(aMUAtrig,3); 
+    if subBaseline == true
+        aMUAbl  = mean(aMUAavg(:,csdTM<0),2);
+        aMUAavg = aMUAavg - aMUAbl;        
+    end
+
+    
+    
+    
+    
+    %CSD 30 channel loop
     numChan = size(ns2CSD, 1);
-    numTriggers   = length(triggerpoints1);
+    numTriggers   = length(triggerpoints);
     csdTrig     = NaN( numChan,(post + pre + 1),numTriggers); %changed to be (ch x sample x tr)
     aMUAtrig    = NaN( numChan,(post + pre + 1),numTriggers);
     csdTM     = (0:(size(csdTrig,2)-1)) - pre;
     %loop through each channel and trigger each trial
     for singleCh = 1:numChan
         for singleTrigger = 1:numTriggers
-            timeOfTrigger = triggerpoints1(singleTrigger);
+            timeOfTrigger = triggerpoints(singleTrigger);
             timeOfTrigger = round(timeOfTrigger);
             windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
             csdTrig(singleCh,:,singleTrigger) = ns2CSD(singleCh,windowOfTrigger); %flipped the dimension from trigData.m. Now Channel is first and time is second
@@ -222,24 +225,6 @@ triggerpoints1 = EventTimes1(EventCodes == 23 | EventCodes == 25 | EventCodes ==
     csdPad = padarray(csdAvg,[1 0],NaN,'replicate');
     csdFilter = filterCSD(csdPad);
     
-    %aMUA loop needs to be 2 channels longer
-    numChanaMUA = size(aMUAdown, 1);
-    aMUAtrig    = NaN( numChanaMUA,[post + pre + 1],numTriggers);
-
-        for singleCh = 1:numChanaMUA
-        for singleTrigger = 1:numTriggers
-            timeOfTrigger = triggerpoints1(singleTrigger);
-            timeOfTrigger = round(timeOfTrigger);
-            windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
-            aMUAtrig(singleCh,:,singleTrigger)= aMUAdown(singleCh,windowOfTrigger);   
-            % output is Ch x time x trial/triggerNumber
-        end
-    end
-    aMUAavg = mean(aMUAtrig,3); 
-    if subBaseline == true
-        aMUAbl  = mean(aMUAavg(:,csdTM<0),2);
-        aMUAavg = aMUAavg - aMUAbl;        
-    end
 
 
    
@@ -260,6 +245,7 @@ triggerpoints1 = EventTimes1(EventCodes == 23 | EventCodes == 25 | EventCodes ==
 %% PLOT 1,2,3,4,5
 % LFP, CSDshadedLine, fCSD, aMUA, PSD
 figure
+subplot(1,2,1)
 imagesc(csdTM,chans,csdFilter); colormap(flipud(jet));
 climit = max(abs(get(gca,'CLim'))*.8);
 if PARAMS.SortDirection == 'descending'
@@ -277,7 +263,8 @@ ylabel('Contacts indexed down from surface')
 clrbar.Label.String = 'nA/mm^3';
 set(gcf,'Position',[1 40 331 662]);
 %test
-figure
+
+subplot(1,2,2)
 f_ShadedLinePlotbyDepth(aMUAavg,chans,csdTM,[],1)
 plot([0 0], ylim,'k')
 title({'aMUA code rewrite',filename}, 'Interpreter', 'none')
