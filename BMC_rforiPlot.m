@@ -2,13 +2,13 @@
 clear
 
 %% EDITABLE VARIABLES
-filename = '160102_E_rfori002';
-directory = 'G:\LaCie\all BRFS\160102_E';
+filename = '160510_E_rfori001';
+directory = 'G:\LaCie\all BRFS\160510_E';
 sinkAllocate = 'BMC_DfS';
 pre = 50;
 post = 250;
-subBaseline = true;
 manualUv = true;
+TM = -pre:1:post;
 
 
 
@@ -16,7 +16,7 @@ manualUv = true;
 
 
 %% LOAD IN SESSION DATA
-
+tic
 %% Load session params
 cd('G:\LaCie')
 load('SessionParams.mat')
@@ -114,7 +114,7 @@ contactLogical = strcmp({NS2_Header.ElectrodesInfo.ConnectorBank},PARAMS.V1bank{
 contactLabels = {NS2_Header.ElectrodesInfo(contactLogical).Label};
 contactNum = size(contactLabels,2);
 if contactNum ~= PARAMS.el
-    error('Houston we have a problem')
+    error('Houston we have a problem') %I'm not totally sure this set-up will always work... BMC 8/26/19
 end
 
 count = 0;
@@ -220,8 +220,10 @@ end
 
 %% CSD fro double derivative. Simply used to compare the method. NOT FOR POSTERS OR PAPERS!!!
     %derivitive 
-    ns2CSD_diff = diff(ns2LFP,2,1);
-    ns6CSD_diff = diff(ns6LFPdown,2,1);
+    ns2CSD_diff         = diff(ns2LFP,2,1);
+    ns2CSD_diffpad      = padarray(ns2CSD_diff,[1 0],NaN,'replicate');    
+    ns6CSD_diff         = diff(ns6LFPdown,2,1);
+    ns6CSD_diffpad      = padarray(ns6CSD_diff,[1 0],NaN,'replicate');
     
 %% calcCSD_BMC    
     elSpaces = 0.1:0.1:contactNum/10;
@@ -238,70 +240,158 @@ end
         end            
     end
     ns2CSD(:,:) = (-1*calced*ns2LFP);
+    ns2CSDpad   = padarray(ns2CSD,[1 0],NaN,'replicate');
     ns6CSD(:,:) = (-1*calced*ns6LFPdown);
+    ns6CSDpad   = padarray(ns6CSD,[1 0],NaN,'replicate');
 
 %% TRIGGER TO pEvC/pEvT at 1 kHz 
-triggerpoints.eventcodes = STIM.onsetsdown; % remove TPs that are too close to start or end
-triggerpoints.photo      = STIM_photo.onsetsdown;
+% Structure of section.
+    % A) Trigger to STIM.onsetsdown
+        % i) trigger ns2
+        % i) trigger ns6
+                % output is TRIG.ns2LFP TRIG.ns2CSD_diff TRIG.ns2CSD
+                % TRIG.ns6LFP TRIG.ns6CSD_diff TRIG.ns6CSD and TRIG.aMUA
+    % b) Trigger to STIM_photo.onsetsdown
+        % i) trigger ns2
+        % i) trigger ns6
 
-%%%%%%%%%%%%%%%%%%% END OF UPDATE ON 8/22/19. Finish pulling out the onsets
-%%%%%%%%%%%%%%%%%%% from the STIM variable and use that to trigger BOTH ns2
-%%%%%%%%%%%%%%%%%%% and ns6 data and compare the results in plots tomorrow.
-    triggerpoints(triggerpoints - pre  < 0) = [];
-    triggerpoints(triggerpoints + post > size(ns2CSD,2)) = [];
+        
+% A) Trigger to STIM.onsetsdown 
+% remove TPs that are too close to start or end
+STIM.onsetsdown(STIM.onsetsdown - pre  < 0) = [];
+STIM.onsetsdown(STIM.onsetsdown + post > size(ns6LFPdown,2)) = [];
 
-    numChanaMUA = size(aMUAdown, 1);
-    numTriggers = size(triggerpoints,2);
-    aMUAtrig    = NaN( numChanaMUA,[post + pre + 1],numTriggers);
+% get dimensions for preallocation
+contactLogical = strcmp({NS2_Header.ElectrodesInfo.ConnectorBank},PARAMS.V1bank{1,1}(2));
+contactLabels = {NS2_Header.ElectrodesInfo(contactLogical).Label};
+contactNum = size(contactLabels,2);
+if contactNum ~= PARAMS.el
+    error('Houston we have a problem') %I'm not totally sure this set-up will always work... BMC 8/26/19
+end
+numTriggers = size(STIM.onsetsdown,1);
 
-    %%% DATA MUST BE DOWNSAMPLED TO 1KH IN ORDER TO TRIGGER PROPERLY
-    for singleCh = 1:numChanaMUA 
-        for singleTrigger = 1:numTriggers
-            timeOfTrigger = triggerpoints(singleTrigger);
-            windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
-            aMUAtrig(singleCh,:,singleTrigger)= aMUAdown(singleCh,windowOfTrigger);   
-            % output is Ch x time x trial/triggerNumber
-        end
+%preallocate
+TRIG.ns2LFP         = NaN( contactNum,(post + pre + 1),numTriggers); 
+TRIG.ns2CSD_diff    = NaN( contactNum,(post + pre + 1),numTriggers);
+TRIG.ns2CSD         = NaN( contactNum,(post + pre + 1),numTriggers);
+TRIG.ns6LFP         = NaN( contactNum,(post + pre + 1),numTriggers);
+TRIG.ns6CSD_diff    = NaN( contactNum,(post + pre + 1),numTriggers);
+TRIG.ns6CSD         = NaN( contactNum,(post + pre + 1),numTriggers);
+TRIG.aMUA           = NaN( contactNum,(post + pre + 1),numTriggers);
+
+    
+%%% DATA MUST BE DOWNSAMPLED TO 1KH IN ORDER TO TRIGGER PROPERLY
+for singleCh = 1:contactNum 
+    for singleTrigger = 1:numTriggers
+        timeOfTrigger = STIM.onsetsdown(singleTrigger);
+        windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
+        % output is (Ch x time x triggerNumber)
+        TRIG.ns2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
+        TRIG.ns2CSD_diff(singleCh,:,singleTrigger)	= ns2CSD_diffpad(singleCh,windowOfTrigger);
+        TRIG.ns2CSD(singleCh,:,singleTrigger)       = ns2CSDpad(singleCh,windowOfTrigger);
+        TRIG.ns6LFP(singleCh,:,singleTrigger)       = ns6LFPdown(singleCh,windowOfTrigger);
+        TRIG.ns6CSD_diff(singleCh,:,singleTrigger)	= ns6CSD_diffpad(singleCh,windowOfTrigger);
+        TRIG.ns6CSD(singleCh,:,singleTrigger)       = ns6CSDpad(singleCh,windowOfTrigger);
+        TRIG.aMUA(singleCh,:,singleTrigger)         = aMUAdown(singleCh,windowOfTrigger);
     end
-    aMUAavg = mean(aMUAtrig,3); 
-    if subBaseline == true
-        aMUAbl  = mean(aMUAavg(:,csdTM<0),2);
-        aMUAavg = aMUAavg - aMUAbl;        
+end
+
+% B) Trigger to STIM_photo.onsetsdown 
+% remove TPs that are too close to start or end
+STIM_photo.onsetsdown(STIM_photo.onsetsdown - pre  < 0) = [];
+STIM_photo.onsetsdown(STIM_photo.onsetsdown + post > size(ns6LFPdown,2)) = [];
+
+% get dimensions for preallocation
+contactLogical = strcmp({NS2_Header.ElectrodesInfo.ConnectorBank},PARAMS.V1bank{1,1}(2));
+contactLabels = {NS2_Header.ElectrodesInfo(contactLogical).Label};
+contactNum = size(contactLabels,2);
+if contactNum ~= PARAMS.el
+    error('Houston we have a problem') %I'm not totally sure this set-up will always work... BMC 8/26/19
+end
+numTriggers_photo = size(STIM_photo.onsetsdown,1);
+
+%preallocate
+TRIG_photo.ns2LFP         = NaN( contactNum,(post + pre + 1),numTriggers_photo); 
+TRIG_photo.ns2CSD_diff    = NaN( contactNum,(post + pre + 1),numTriggers_photo);
+TRIG_photo.ns2CSD         = NaN( contactNum,(post + pre + 1),numTriggers_photo);
+TRIG_photo.ns6LFP         = NaN( contactNum,(post + pre + 1),numTriggers_photo);
+TRIG_photo.ns6CSD_diff    = NaN( contactNum,(post + pre + 1),numTriggers_photo);
+TRIG_photo.ns6CSD         = NaN( contactNum,(post + pre + 1),numTriggers_photo);
+TRIG_photo.aMUA           = NaN( contactNum,(post + pre + 1),numTriggers_photo);
+
+    
+%%% DATA MUST BE DOWNSAMPLED TO 1KH IN ORDER TO TRIGGER PROPERLY
+for singleCh = 1:contactNum 
+    for singleTrigger = 1:numTriggers_photo
+        timeOfTrigger_photo = STIM_photo.onsetsdown(singleTrigger);
+        windowOfTrigger_photo = timeOfTrigger_photo-pre:timeOfTrigger_photo+post;
+        % output is (Ch x time x triggerNumber)
+        TRIG_photo.ns2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger_photo); 
+        TRIG_photo.ns2CSD_diff(singleCh,:,singleTrigger)	= ns2CSD_diffpad(singleCh,windowOfTrigger_photo);
+        TRIG_photo.ns2CSD(singleCh,:,singleTrigger)       = ns2CSDpad(singleCh,windowOfTrigger_photo);
+        TRIG_photo.ns6LFP(singleCh,:,singleTrigger)       = ns6LFPdown(singleCh,windowOfTrigger_photo);
+        TRIG_photo.ns6CSD_diff(singleCh,:,singleTrigger)	= ns6CSD_diffpad(singleCh,windowOfTrigger_photo);
+        TRIG_photo.ns6CSD(singleCh,:,singleTrigger)       = ns6CSDpad(singleCh,windowOfTrigger_photo);
+        TRIG_photo.aMUA(singleCh,:,singleTrigger)         = aMUAdown(singleCh,windowOfTrigger_photo);
     end
-
-    
-    
-    
-    
-    %CSD 30 channel loop
-    numChan = size(ns2CSD, 1);
-    numTriggers   = length(triggerpoints);
-    csdTrig     = NaN( numChan,(post + pre + 1),numTriggers); %changed to be (ch x sample x tr)
-    aMUAtrig    = NaN( numChan,(post + pre + 1),numTriggers);
-    csdTM     = (0:(size(csdTrig,2)-1)) - pre;
-    %loop through each channel and trigger each trial
-    for singleCh = 1:numChan
-        for singleTrigger = 1:numTriggers
-            timeOfTrigger = triggerpoints(singleTrigger);
-            timeOfTrigger = round(timeOfTrigger);
-            windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
-            csdTrig(singleCh,:,singleTrigger) = ns2CSD(singleCh,windowOfTrigger); %flipped the dimension from trigData.m. Now Channel is first and time is second
-            % output is Ch x time x trial/triggerNumber
-        end
-    end
-    csdAvg  = mean(csdTrig,3);
-    if subBaseline == true
-        csdBL  = mean(csdAvg(:,csdTM<0),2);
-        csdAvg = csdAvg - csdBL;       
-    end
-    csdPad = padarray(csdAvg,[1 0],NaN,'replicate');
-    csdFilter = filterCSD(csdPad);
-    
+end
 
 
-   
 
-    
+
+%% AVERAGE AND BASELINE-CORRECT TRIGGERED DATA
+
+%% Average
+% Avgerage TRIG
+fields.TRIG = fieldnames(TRIG);
+for avtr=1:numel(fields.TRIG)
+    AVG.(fields.TRIG{avtr})  = mean(TRIG.(fields.TRIG{avtr}),3);
+end
+
+
+% Avgerage TRIG_photo
+fields.TRIG_photo = fieldnames(TRIG_photo);
+for avtrp=1:numel(fields.TRIG_photo)
+    AVG_photo.(fields.TRIG_photo{avtrp})  = mean(TRIG_photo.(fields.TRIG_photo{avtrp}),3);
+end
+%% Baseline corect
+% bl AVG
+fields.AVG = fieldnames(AVG);
+for blavg=1:numel(fields.AVG)
+    bl  = mean(AVG.(fields.AVG{blavg})(:,TM<0),2);
+    BLavg.(fields.AVG{blavg})  = AVG.(fields.AVG{blavg}) - bl;
+end
+
+% bl AVG_photo
+fields.AVG_photo = fieldnames(AVG_photo);
+for blavgp=1:numel(fields.AVG_photo)
+    bl_photo  = mean(AVG_photo.(fields.AVG_photo{blavgp})(:,TM<0),2);
+    BLavg_photo.(fields.AVG_photo{blavgp})  = AVG_photo.(fields.AVG_photo{blavgp}) - bl_photo;
+end
+
+
+%% Filter and interpolate CSD, ns2 and ns5
+% AVG
+AVG.ns2fCSD = filterCSD(AVG.ns2CSD);
+AVG.ns6fCSD = filterCSD(AVG.ns6CSD);
+
+% AVG_photo
+AVG_photo.ns2fCSD = filterCSD(AVG_photo.ns2CSD);
+AVG_photo.ns6fCSD = filterCSD(AVG_photo.ns6CSD);
+
+% BLavg
+BLavg.ns2fCSD       = filterCSD(BLavg.ns2CSD);
+BLavg.ns2fCSD_diff  = filterCSD(BLavg.ns2CSD_diff);
+BLavg.ns6fCSD       = filterCSD(BLavg.ns6CSD);
+BLavg.ns6fCSD_diff  = filterCSD(BLavg.ns6CSD_diff);
+
+% BLavg_photo
+BLavg_photo.ns2fCSD       = filterCSD(BLavg_photo.ns2CSD);
+BLavg_photo.ns2fCSD_diff  = filterCSD(BLavg_photo.ns2CSD_diff);
+BLavg_photo.ns6fCSD       = filterCSD(BLavg_photo.ns6CSD);
+BLavg_photo.ns6fCSD_diff  = filterCSD(BLavg_photo.ns6CSD_diff);
+
+
 %% POSTPROCESS
 % downsample and get PSD
 
@@ -317,30 +407,48 @@ triggerpoints.photo      = STIM_photo.onsetsdown;
 %% PLOT 1,2,3,4,5
 % LFP, CSDshadedLine, fCSD, aMUA, PSD
 figure
-subplot(1,2,1)
-imagesc(csdTM,chans,csdFilter); colormap(flipud(jet));
+%LFPline
+subplot(1,4,1)
+f_ShadedLinePlotbyDepth(BLavg_photo.ns6LFP,chans,TM,[],1)
+plot([0 0], ylim,'k')
+title({'LFP',filename}, 'Interpreter', 'none')
+xlabel('time (ms)')
+ylabel('Contacts indexed down from surface')
+
+% CSD line
+subplot(1,4,2)
+f_ShadedLinePlotbyDepth(BLavg_photo.ns6CSD,chans,TM,[],1)
+plot([0 0], ylim,'k')
+title({'CSD',filename}, 'Interpreter', 'none')
+xlabel('time (ms)')
+
+% fCSD
+subplot(1,4,3)
+imagesc(TM,chans,BLavg_photo.ns6fCSD); 
+colormap(flipud(jet));
 climit = max(abs(get(gca,'CLim'))*.8);
-if PARAMS.SortDirection == 'descending'
-    ydir = 'reverse';
-elseif PARAMS.SortDirection == 'ascending'
-    ydir = 'normal';
-end
-set(gca,'CLim',[-climit climit],'Ydir',ydir,'Box','off','TickDir','out')
+set(gca,'CLim',[-climit climit],'Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
 clrbar = colorbar;
-title({'CSD code rewrite',filename}, 'Interpreter', 'none')
+title({'interpolate CSD',filename}, 'Interpreter', 'none')
 xlabel('time (ms)')
-ylabel('Contacts indexed down from surface')
 clrbar.Label.String = 'nA/mm^3';
-set(gcf,'Position',[1 40 331 662]);
-%test
 
-subplot(1,2,2)
-f_ShadedLinePlotbyDepth(aMUAavg,chans,csdTM,[],1)
+
+% aMUA line
+subplot(1,4,4)
+f_ShadedLinePlotbyDepth(BLavg_photo.aMUA,chans,TM,[],1)
 plot([0 0], ylim,'k')
-title({'aMUA code rewrite',filename}, 'Interpreter', 'none')
+title({'aMUA',filename}, 'Interpreter', 'none')
 xlabel('time (ms)')
-ylabel('Contacts indexed down from surface')
-set(gcf,'Position',[1 40 331 662]);
+
+%% SCRIPT END
+toc
+
+load gong.mat;
+sound(y);
+
+
+
 

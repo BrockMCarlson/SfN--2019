@@ -22,7 +22,7 @@ for a = 1:size(BRdatafile,2)
 cd(drname{a})
 clear LFP EventCodes EventTimes DAT TM CSD CSDf corticaldepth y
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[LFP, EventCodes, EventTimes]= getLFP(BRdatafile{a},extension,el{a},sortdirection,drname{a});
+[LFP, EventCodes, EventTimes]= getLFP(BRdatafile{a},extension,el{a},sortdirection);
 triggerpoints = EventTimes(EventCodes == 23 | EventCodes == 25 | EventCodes == 27 | EventCodes == 29| EventCodes == 31);
 if isempty(chans)
    chans = [1:size(LFP,2)];
