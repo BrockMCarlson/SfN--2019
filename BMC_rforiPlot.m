@@ -7,7 +7,6 @@ directory = 'G:\LaCie\all BRFS\160510_E';
 sinkAllocate = 'BMC_DfS';
 pre = 50;
 post = 250;
-manualUv = true;
 TM = -pre:1:post;
 
 
