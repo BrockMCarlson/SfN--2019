@@ -1,4 +1,4 @@
-function [pEvT_photo,phototrigger] = pEvtPhoto2_BMCbrfs(filename,pEvC,pEvT,bhv,photo_lORd,flag_plottriggeredBNC,method,grating)
+function [pEvT_photo,phototrigger] = pEvtPhoto2_BMCbrfs(filename,pEvC,pEvT,ypos,bhv,photo_lORd,flag_plottriggeredBNC,method)
 
 % filename     : BRdatafile with path, ONLY required input
 % pEvC, pEvT   : cell arrays with event codes and times for every trial
@@ -47,10 +47,18 @@ if ~exist('pEvC','var') || ~exist('pEvT','var') || isempty(pEvC) || isempty(pEvT
     EventSampels = NEV.Data.SerialDigitalIO.TimeStamp;
     [pEvC, pEvT] = parsEventCodesML(EventCodes,EventSampels);
 end
-
-%ypos
+% ypos
+if ~exist('ypos','var')  || isempty(ypos)
+    if ~isempty(strfind(BRdatafile,'rom'))
+        ext = '.gROMGrating_di';
+    elseif ~isempty(strfind(BRdatafile,'rsf'))
+        ext = '.gRSFGrating_di';
+    elseif  ~isempty(strfind(BRdatafile,'rsiz'))
+        ext = '.gRSZGrating_di';
+    end
+    grating = readgGrating([brdrname filesep BRdatafile ext]);
     ypos = mode(grating.ypos);
-
+end
 % bhv
 if ~exist('bhv','var') || isempty(bhv)
     if ~exist(bhvfile,'file') % && str2num(BRdatafile(1:6)) < ...
@@ -164,7 +172,7 @@ for t = 1: length(pEvC)
                         energy(1)  = std(diff(BNC(win_pre)));
                         energy(2)  = std(diff(BNC(win_post)));
                         
-                        if diff(energy) < 0;
+                        if diff(energy) < 0
                             % from high amplitude -> low amplitude
                         else
                             error('needs development')

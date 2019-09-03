@@ -39,6 +39,7 @@ elseif contains(gratingext,'Dots')
       grating     = readgDotsXY([filename gratingext]);
 elseif contains(gratingext,'Brfs')
       grating = readBRFS([filename gratingext]);
+      grating.filename = filename;
 else
       grating     = readgGrating([filename gratingext]);
 end

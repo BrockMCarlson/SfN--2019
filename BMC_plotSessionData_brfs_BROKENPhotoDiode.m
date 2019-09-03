@@ -9,8 +9,8 @@
 clear
 
 %% EDITABLE VARIABLES
-filename = '160427_E_brfs001';
-directory = 'G:\LaCie\all BRFS\160427_E';
+filename = '160102_E_brfs001';
+directory = 'G:\LaCie\all BRFS\160102_E';
 sinkAllocate = 'BMC_DfS';
 pre = 50;
 post = 250;
@@ -54,19 +54,19 @@ EventCodes      = NEV.Data.SerialDigitalIO.UnparsedData - 128;        % we don't
 EventSamples    = NEV.Data.SerialDigitalIO.TimeStamp;                 % in samples 
 EventTimes      = floor(NEV.Data.SerialDigitalIO.TimeStampSec.*1000); % convert to ms 
 [pEvC, pEvT]    = parsEventCodesML(EventCodes,EventSamples);          % sorts codes, samps or times into trials
-% [pEvT_photo,tf] = pEvtPhoto2_BMCbrfs(readGRATINGfile,pEvC,pEvT,mode(grating.ypos),[],'ainp1',0); % photo diode signal
+[pEvT_photo,tf] = pEvtPhoto2_BMCbrfs(readGRATINGfile,pEvC,pEvT,mode(grating.ypos),[],'ainp1',0); % photo diode signal
 %% SORT pEvC/pEvT TO MATCH GRAITN VARIABLE
 % So far all of these data are from EVERY trial, including trials where
 % animal breaks fixation. Lets get rid of those and make a new structure
 % with the grating info and the stimulus onsets 
 STIM            = sortStimandTimeData(grating,pEvC,pEvT,'stim'); % this is in nbanalysis. definitely double check it before you use it. 
-% STIM_photo      =  sortStimandTimeData(grating,pEvC,pEvT_photo,'stim'); % uses the photodiode inputs
+STIM_photo      =  sortStimandTimeData(grating,pEvC,pEvT_photo,'stim'); % uses the photodiode inputs
 
 %%%%%%%%%%%% Note, STIM.onsets, is now an index of the column position for
 %%%%%%%%%%%% the stimulus onset in the 30kHz data
 
 STIM.onsetsdown         = floor(STIM.onsets./30);
-% STIM_photo.onsetsdown   = floor(STIM_photo.onsets./30);
+STIM_photo.onsetsdown   = floor(STIM_photo.onsets./30);
 
 %% LOAD NEURAL DATA
 % pin-by-pin function
@@ -88,10 +88,8 @@ ns2CSD   = padarray(calcCSD(ns2LFP'),[1 0],NaN,'replicate');
 ns6CSD   = padarray(calcCSD(ns6LFPdown'),[1 0],NaN,'replicate'); 
 
 %% Trigger data
-[TRIG] = bmcTRIG(STIM,PARAMS,pre,post,readNS2file, ...
+[TRIG,TRIG_photo] = bmcTRIG(STIM,STIM_photo,PARAMS,pre,post,readNS2file, ...
     readNS6file,ns2LFP,ns2CSD,ns6LFPdown,ns6CSD,aMUAdown);
-% % % [TRIG_photo] = bmcTRIG_photo(STIM_photo,PARAMS,pre,post,readNS2file, ...
-% % %     readNS6file,ns2LFP,ns2CSD,ns6LFPdown,ns6CSD,aMUAdown);
 
 %% AVERAGE AND BASELINE-CORRECT TRIGGERED DATA
 
@@ -103,11 +101,11 @@ for avtr=1:numel(fields.TRIG)
 end
 
 
-% % % % Avgerage TRIG_photo
-% % % fields.TRIG_photo = fieldnames(TRIG_photo);
-% % % for avtrp=1:numel(fields.TRIG_photo)
-% % %     AVG_photo.(fields.TRIG_photo{avtrp})  = mean(TRIG_photo.(fields.TRIG_photo{avtrp}),3);
-% % % end
+% Avgerage TRIG_photo
+fields.TRIG_photo = fieldnames(TRIG_photo);
+for avtrp=1:numel(fields.TRIG_photo)
+    AVG_photo.(fields.TRIG_photo{avtrp})  = mean(TRIG_photo.(fields.TRIG_photo{avtrp}),3);
+end
 %% Baseline corect
 % bl AVG
 fields.AVG = fieldnames(AVG);
@@ -116,12 +114,12 @@ for blavg=1:numel(fields.AVG)
     BLavg.(fields.AVG{blavg})  = AVG.(fields.AVG{blavg}) - bl;
 end
 
-% % % % % bl AVG_photo
-% % % % fields.AVG_photo = fieldnames(AVG_photo);
-% % % % for blavgp=1:numel(fields.AVG_photo)
-% % % %     bl_photo  = mean(AVG_photo.(fields.AVG_photo{blavgp})(:,TM<0),2);
-% % % %     BLavg_photo.(fields.AVG_photo{blavgp})  = AVG_photo.(fields.AVG_photo{blavgp}) - bl_photo;
-% % % % end
+% bl AVG_photo
+fields.AVG_photo = fieldnames(AVG_photo);
+for blavgp=1:numel(fields.AVG_photo)
+    bl_photo  = mean(AVG_photo.(fields.AVG_photo{blavgp})(:,TM<0),2);
+    BLavg_photo.(fields.AVG_photo{blavgp})  = AVG_photo.(fields.AVG_photo{blavgp}) - bl_photo;
+end
 
 
 %% Filter and interpolate CSD, ns2 and ns5
@@ -129,17 +127,17 @@ end
 AVG.ns2fCSD = filterCSD(AVG.ns2CSD);
 AVG.ns6fCSD = filterCSD(AVG.ns6CSD);
 
-% % % % AVG_photo
-% % % AVG_photo.ns2fCSD = filterCSD(AVG_photo.ns2CSD);
-% % % AVG_photo.ns6fCSD = filterCSD(AVG_photo.ns6CSD);
+% AVG_photo
+AVG_photo.ns2fCSD = filterCSD(AVG_photo.ns2CSD);
+AVG_photo.ns6fCSD = filterCSD(AVG_photo.ns6CSD);
 
 % BLavg
 BLavg.ns2fCSD       = filterCSD(BLavg.ns2CSD);
 BLavg.ns6fCSD       = filterCSD(BLavg.ns6CSD);
 
-% % % % BLavg_photo
-% % % BLavg_photo.ns2fCSD       = filterCSD(BLavg_photo.ns2CSD);
-% % % BLavg_photo.ns6fCSD       = filterCSD(BLavg_photo.ns6CSD);
+% BLavg_photo
+BLavg_photo.ns2fCSD       = filterCSD(BLavg_photo.ns2CSD);
+BLavg_photo.ns6fCSD       = filterCSD(BLavg_photo.ns6CSD);
 
 %% POSTPROCESS
 % downsample and get PSD
@@ -158,7 +156,7 @@ BLavg.ns6fCSD       = filterCSD(BLavg.ns6CSD);
 figure
 %LFPline
 subplot(1,4,1)
-f_ShadedLinePlotbyDepth(BLavg.ns6LFP,chans,TM,[],1)
+f_ShadedLinePlotbyDepth(BLavg_photo.ns6LFP,chans,TM,[],1)
 plot([0 0], ylim,'k')
 title({'LFP',filename}, 'Interpreter', 'none')
 xlabel('time (ms)')
@@ -166,14 +164,14 @@ ylabel('Contacts indexed down from surface')
 
 % CSD line
 subplot(1,4,2)
-f_ShadedLinePlotbyDepth(BLavg.ns6CSD,chans,TM,[],1)
+f_ShadedLinePlotbyDepth(BLavg_photo.ns6CSD,chans,TM,[],1)
 plot([0 0], ylim,'k')
 title({'CSD',filename}, 'Interpreter', 'none')
 xlabel('time (ms)')
 
 % fCSD
 subplot(1,4,3)
-imagesc(TM,chans,BLavg.ns6fCSD); 
+imagesc(TM,chans,BLavg_photo.ns6fCSD); 
 colormap(flipud(jet));
 climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'Box','off','TickDir','out')
@@ -187,7 +185,7 @@ clrbar.Label.String = 'nA/mm^3';
 
 % aMUA line
 subplot(1,4,4)
-f_ShadedLinePlotbyDepth(BLavg.aMUA,chans,TM,[],1)
+f_ShadedLinePlotbyDepth(BLavg_photo.aMUA,chans,TM,[],1)
 plot([0 0], ylim,'k')
 title({'aMUA',filename}, 'Interpreter', 'none')
 xlabel('time (ms)')
