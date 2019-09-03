@@ -9,18 +9,25 @@
 clear
 
 %% EDITABLE VARIABLES
-filename = '160427_E_brfs001';
-directory = 'G:\LaCie\all BRFS\160427_E';
+filename = '160510_E_brfs001';
+if ispc
+    directory = 'G:\LaCie\all BRFS\160510_E';
+else
+    directory = '/Volumes/Drobo/DATA/NEUROPHYS/carlsobm';
+end
 sinkAllocate = 'BMC_DfS';
 pre = 50;
 post = 250;
-manualUv = true;
 TM = -pre:1:post;
 
 %% LOAD IN SESSION DATA
 tic
 %% Load session params
-cd('G:\LaCie')
+if ispc
+    cd('G:\LaCie')
+else
+    cd(directory)
+end
 load('SessionParams.mat')
 switch sinkAllocate
     case 'BMC_DfS'
