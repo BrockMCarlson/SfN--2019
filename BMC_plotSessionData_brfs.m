@@ -59,7 +59,7 @@ EventTimes      = floor(NEV.Data.SerialDigitalIO.TimeStampSec.*1000); % convert 
 % So far all of these data are from EVERY trial, including trials where
 % animal breaks fixation. Lets get rid of those and make a new structure
 % with the grating info and the stimulus onsets 
-STIM            = sortStimandTimeData(grating,pEvC,pEvT,'stim'); % this is in nbanalysis. definitely double check it before you use it. 
+STIM            = sortStimandTimeData_bmc(grating,pEvC,pEvT,'stim'); % this is in nbanalysis. definitely double check it before you use it. 
 % STIM_photo      =  sortStimandTimeData(grating,pEvC,pEvT_photo,'stim'); % uses the photodiode inputs
 
 %%%%%%%%%%%% Note, STIM.onsets, is now an index of the column position for
