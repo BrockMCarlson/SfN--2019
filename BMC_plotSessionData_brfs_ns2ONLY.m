@@ -2,8 +2,9 @@
 clear
 
 %% EDITABLE VARIABLES
-filename = {'160102_E_rfori002','160102_E_brfs001','160427_E_rfori002',...
-    '160427_E_brfs001','160510_E_rfori001','160510_E_brfs001'}';
+filename = {'160102_E_brfs001'}';
+% % filename = {'160102_E_rfori002','160102_E_brfs001','160427_E_rfori002',...
+% %     '160427_E_brfs001','160510_E_rfori001','160510_E_brfs001'}';
 sinkAllocate = 'BMC_DfS';
 pre = 50;
 post = 250;
@@ -83,9 +84,10 @@ STIM            = sortStimandTimeData(grating,pEvC,pEvT,'stim'); % this is in nb
 %%%%%%%%%%%% Note, STIM.onsets, is now an index of the column position for
 %%%%%%%%%%%% the stimulus onset in the 30kHz data
 
-STIM.onsetsdown         = floor(STIM.onsets./30);
+STIM.onsetsdown         = floor(STIM.onsets./30); % necessary even for ns2 file analysis and use of photo diode. pEvT is in 30kHz sampling time. 
 % % % % STIM_photo.onsetsdown   = floor(STIM_photo.onsets./30);
 
+STIM_BRFS = sortBrfsStimandTimeData(grating,pEvC,pEvT,PARAMS);
 
 
 %% LOAD NEURAL DATA
