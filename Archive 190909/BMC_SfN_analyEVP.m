@@ -1,4 +1,15 @@
+% BMC_SfN_analyEVP.m
+%   8/7/2019
+%   This script is currently in working order. This is a quick and dirty
+%   way to get a CSD line plot and a filterCSD out of the NS2 files.
+%
+%   PLEASE NOTE: This code is based on KD/MAC's methods of pulling out
+%   channel numbers, with their indexing allocations. I believe that it
+%   works BUT -- if possible -- please use a newer version of the code.
+%
+%
 
+%%
 addpath(genpath('G:\LaCie\all BRFS'));
 drname        = {'G:\LaCie\all BRFS\160102_E\'};%%,'G:\LaCie\all BRFS\160427_E\',...
    %% 'G:\LaCie\all BRFS\160510_E\'};

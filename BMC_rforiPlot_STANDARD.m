@@ -1,10 +1,29 @@
-% Make CSD of rfori
+% BMC_rforiPlot.m
+%   This is the gold-standard for the BMC analysis path. It was approved at
+%   the 9/2/2019 lab meeting. This code does not work for large files as it
+%   does not use space effeciently. However, all further analysis should be
+%   based on this code because it proper plots LFP, CSD, fCSD, and aMUA
+%   with correct indexing, using both ns6 files (with capability of using
+%   the ns2 files if necessary), and all triggered to the photodiode.
+%   Future iterations of this code broke it down into functions but this
+%   code is ideal because everything is written out line-by-line. 
+%
+%   Note: this code simply plots all stimulus onsets. It does not work for
+%   specific triggering in BRFS.
+%
+%   As of 9/9/19 this code runs.
+%
+%
+
+
+
+%% Make CSD of rfori
 clear
 
 %% EDITABLE VARIABLES
-filename = '160510_E_rfori002';
+filename = '160102_E_rfori002';
 if ispc
-    directory = 'G:\LaCie\all BRFS\160510_E';
+    directory = 'G:\LaCie\all BRFS\160102_E';
 else
     directory = '/Volumes/Drobo/DATA/NEUROPHYS/carlsobm';
 end

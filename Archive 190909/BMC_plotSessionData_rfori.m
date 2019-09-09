@@ -4,6 +4,12 @@
 %   Brock Carlson -- created 8/27/19
 %   Taken from BMC_rforiPlot.m but broken into smaller functions because
 %   160510 rfori001 was crashing the system.
+%
+%   THIS CODE IS BROKEN. bmcTRIG was intially desigend to work with the
+%   photo diode inputs. Specifically STIM_photo. However, this was taken
+%   out of a later version of bmcTRIG when the photo diode stopped working.
+%   
+%   Sent to archive on 9/9/19
 
 
 clear

@@ -89,6 +89,8 @@ clear STIM_BRFS
             obs = obs +1;
             STIM_BRFS.diop_simult_PS.start_noSoa(obs,:) = start_noSoa;
             STIM_BRFS.diop_simult_PS.stop(obs,:) = stop;
+            STIM_BRFS.diop_simult_PS.start_noSoaDown(obs,:) = start_noSoa./30;
+            STIM_BRFS.diop_simult_PS.stopDown(obs,:) = stop./30;            
             STIM_BRFS.diop_simult_PS.trstart(obs,:)  = double(times(find(codes == 9,1,'first')));
             STIM_BRFS.diop_simult_PS.trend(obs,:)    = double(times(find(codes == 18,1,'first')));
             STIM_BRFS.diop_simult_PS.obs(obs,:)  = obs; 
@@ -126,6 +128,8 @@ clear STIM_BRFS
             obs = obs +1;
             STIM_BRFS.diop_simult_NPS.start_noSoa(obs,:) = start_noSoa;
             STIM_BRFS.diop_simult_NPS.stop(obs,:) = stop;
+            STIM_BRFS.diop_simult_NPS.start_noSoaDown(obs,:) = start_noSoa./30;
+            STIM_BRFS.diop_simult_NPS.stopDown(obs,:) = stop./30; 
             STIM_BRFS.diop_simult_NPS.trstart(obs,:)  = double(times(find(codes == 9,1,'first')));
             STIM_BRFS.diop_simult_NPS.trend(obs,:)    = double(times(find(codes == 18,1,'first')));
             STIM_BRFS.diop_simult_NPS.obs(obs,:)  = obs; 
@@ -162,6 +166,8 @@ clear STIM_BRFS
             obs = obs +1;
             STIM_BRFS.dichop_simult.start_noSoa(obs,:) = start_noSoa;
             STIM_BRFS.dichop_simult.stop(obs,:) = stop;
+            STIM_BRFS.dichop_simult.start_noSoaDown(obs,:) = start_noSoa./30;
+            STIM_BRFS.dichop_simult.stopDown(obs,:) = stop./30; 
             STIM_BRFS.dichop_simult.trstart(obs,:)  = double(times(find(codes == 9,1,'first')));
             STIM_BRFS.dichop_simult.trend(obs,:)    = double(times(find(codes == 18,1,'first')));
             STIM_BRFS.dichop_simult.obs(obs,:)  = obs; 
@@ -200,6 +206,9 @@ clear STIM_BRFS
             STIM_BRFS.diop_800soa_PS.start1(obs,:) = start1;
             STIM_BRFS.diop_800soa_PS.start2(obs,:) = start2;
             STIM_BRFS.diop_800soa_PS.stop(obs,:) = stop;
+            STIM_BRFS.diop_800soa_PS.start1Down(obs,:) = start1./30;
+            STIM_BRFS.diop_800soa_PS.start2Down(obs,:) = start2./30;
+            STIM_BRFS.diop_800soa_PS.stopDown(obs,:) = stop./30;
             STIM_BRFS.diop_800soa_PS.trstart(obs,:)  = double(times(find(codes == 9,1,'first')));
             STIM_BRFS.diop_800soa_PS.trend(obs,:)    = double(times(find(codes == 18,1,'first')));
             STIM_BRFS.diop_800soa_PS.obs(obs,:)  = obs; 
@@ -238,6 +247,9 @@ clear STIM_BRFS
             STIM_BRFS.diop_800soa_NPS.start1(obs,:) = start1;
             STIM_BRFS.diop_800soa_NPS.start2(obs,:) = start2;
             STIM_BRFS.diop_800soa_NPS.stop(obs,:) = stop;
+            STIM_BRFS.diop_800soa_NPS.start1Down(obs,:) = start1./30;
+            STIM_BRFS.diop_800soa_NPS.start2Down(obs,:) = start2./30;
+            STIM_BRFS.diop_800soa_NPS.stopDown(obs,:) = stop./30;
             STIM_BRFS.diop_800soa_NPS.trstart(obs,:)  = double(times(find(codes == 9,1,'first')));
             STIM_BRFS.diop_800soa_NPS.trend(obs,:)    = double(times(find(codes == 18,1,'first')));
             STIM_BRFS.diop_800soa_NPS.obs(obs,:)  = obs; 
@@ -275,6 +287,9 @@ clear STIM_BRFS
             STIM_BRFS.dichop_800soa_brfsPSflash.start1(obs,:) = start1;
             STIM_BRFS.dichop_800soa_brfsPSflash.start2(obs,:) = start2;
             STIM_BRFS.dichop_800soa_brfsPSflash.stop(obs,:) = stop;
+            STIM_BRFS.dichop_800soa_brfsPSflash.start1Down(obs,:) = start1./30;
+            STIM_BRFS.dichop_800soa_brfsPSflash.start2Down(obs,:) = start2./30;
+            STIM_BRFS.dichop_800soa_brfsPSflash.stopDown(obs,:) = stop./30;
             STIM_BRFS.dichop_800soa_brfsPSflash.trstart(obs,:)  = double(times(find(codes == 9,1,'first')));
             STIM_BRFS.dichop_800soa_brfsPSflash.trend(obs,:)    = double(times(find(codes == 18,1,'first')));
             STIM_BRFS.dichop_800soa_brfsPSflash.obs(obs,:)  = obs; 
@@ -316,6 +331,9 @@ obs = 0; clear e codes stim times
         STIM_BRFS.dichop_800soa_brfsNPSflash.start1(obs,:) = start1;
         STIM_BRFS.dichop_800soa_brfsNPSflash.start2(obs,:) = start2;
         STIM_BRFS.dichop_800soa_brfsNPSflash.stop(obs,:) = stop;
+        STIM_BRFS.dichop_800soa_brfsNPSflash.start1Down(obs,:) = start1./30;
+        STIM_BRFS.dichop_800soa_brfsNPSflash.start2Down(obs,:) = start2./30;
+        STIM_BRFS.dichop_800soa_brfsNPSflash.stopDown(obs,:) = stop./30;
         STIM_BRFS.dichop_800soa_brfsNPSflash.trstart(obs,:)  = double(times(find(codes == 9,1,'first')));
         STIM_BRFS.dichop_800soa_brfsNPSflash.trend(obs,:)    = double(times(find(codes == 18,1,'first')));
         STIM_BRFS.dichop_800soa_brfsNPSflash.obs(obs,:)  = obs; 
