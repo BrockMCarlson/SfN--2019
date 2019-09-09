@@ -10,9 +10,14 @@
 %
 
 %%
-addpath(genpath('G:\LaCie\all BRFS'));
-drname        = {'G:\LaCie\all BRFS\160102_E\'};%%,'G:\LaCie\all BRFS\160427_E\',...
-   %% 'G:\LaCie\all BRFS\160510_E\'};
+
+if strcmp(getenv('USER'),'maierav')
+    addpath(genpath('/Users/alex 1/Desktop/LAB/Brock'));
+    drname        = {'/Users/alex 1/Desktop/LAB/Brock/Data'};
+else
+    addpath(genpath('G:\LaCie\all BRFS'));
+    drname        = {'G:\LaCie\all BRFS\160102_E\'}; %{'G:\LaCie\all BRFS\160427_E\','G:\LaCie\all BRFS\160510_E\'};
+end
 BRdatafile    = {'160102_E_rfori002'};%%'160427_E_brfs001','160510_E_brfs001'};
 exportfigtext = {'rfori_160102'};%%'brfs_60427','brfs_160510'};
 
