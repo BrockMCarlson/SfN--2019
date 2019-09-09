@@ -8,19 +8,37 @@ pre = 100;
 post = 800;
 TM = -pre:1:post;
 AnalyzeSink = 'lower'; % 'lower' or 'upper'
+exportfigtext = 'PerceptPlot_newIdx';
 
 color.biNOsoa = [5,113,176]/255; % light purple
 color.diWsoaNPS = [202,0,32]/255;% light green
 color.biWsoa = [123,50,148]/255 ; %dark purple
 color.diWsoa = [0,136,55]/255; %dark green
 
+%load session params for the title of each image
+cd('G:\LaCie')
+load('SessionParams.mat')
+    count = 0;
+ 
+for x = 1:size(SessionParams.MatchedExists,1)
+    if SessionParams.PSexist(x) && SessionParams.NPSexist(x)
+        count = count+1;
+        SessionParamsForCondition.Date(count,1) = SessionParams.Date(x);
+        SessionParamsForCondition.el(count,1)   = SessionParams.el(x);
+        SessionParamsForCondition.sortdirection(count,1) = SessionParams.SortDirection(x);
+        SessionParamsForCondition.EvalSink(count,1) = SessionParams.EvalSink(x);
+        SessionParamsForCondition.PS(count,1) = SessionParams.PS(x);
+        SessionParamsForCondition.NPS(count,1) = SessionParams.NPS(x);
+        SessionParamsForCondition.V1bank(count,1) = SessionParams.V1bank(x);
+    end
+end   
 
 % load and create structures based on conditions
-cd('G:\LaCie\SfN 2019')
-    biWsoaPS	= load('biPSWsoafiltered.mat');    
-    biWsoaNPS	= load('biNPSWsoafiltered.mat');
-    diWsoaPS	= load('dicopWsoa_PSflashfiltered.mat');
-    diWsoaNPS	= load('dicopWsoa_NPSflashfiltered.mat');    
+cd('G:\LaCie\SfN 2019--figsAndMatVars')
+    biWsoaPS	= load('PerceptPlot_biPSWsoafiltered.mat');    
+    biWsoaNPS	= load('PerceptPlot_biNPSWsoafiltered.mat');
+    diWsoaPS	= load('PerceptPlot_dicopWsoa_NPSflashfiltered.mat');
+    diWsoaNPS	= load('PerceptPlot_dicopWsoa_PSflashfiltered.mat');    
 
 
 
@@ -47,14 +65,14 @@ switch AnalyzeSink
            sinkAvgAllCSDaligned.biWsoaPS(i,:) = mean(sinkAllCSDaligned.biWsoaPS(1:2,:,i),1);
            sinkAvgAllCSDaligned.diWsoaPS(i,:) = mean(sinkAllCSDaligned.diWsoaPS(1:2,:,i),1);
         end        
-        titletext = {'CSD of lower sink. Cortical depth of 0 & 0.1 averaged.'};
+        titletext1 = 'CSD of lower sink. Cortical depth of 0 & 0.1 averaged.';
         
     case 'upper'
         sinkAvgAllCSDaligned.biWsoaNPS	= squeeze(cutAllCSDaligned.biWsoaNPS(6,:,:))';
         sinkAvgAllCSDaligned.diWsoaNPS     = squeeze(cutAllCSDaligned.diWsoaNPS(6,:,:))';  
         sinkAvgAllCSDaligned.biWsoaPS	= squeeze(cutAllCSDaligned.biWsoaPS(6,:,:))'; 
         sinkAvgAllCSDaligned.diWsoaPS     = squeeze(cutAllCSDaligned.diWsoaPS(6,:,:))';  
-        titletext = {'CSD of upper sink. Cortical depth of 0.7.',' dichoptic simultaneous vs dichoptic with soa.',' Same stimulus different percept.'};
+        titletext1 = 'CSD of upper sink. Cortical depth of 0.7.';
 end
 
 
@@ -106,27 +124,18 @@ postStimSink.biWsoaNPS  = sinkAvgAllCSDaligned.biWsoaNPS(:,:);
 
 postStimTM = -100:1:800;
 
-
+for n = 1:size(blSink.diWsoaNPS,1)
+titletext2 = SessionParamsForCondition.Date(n);
 % plot sink for day with NPS day 1 only
 h = figure;
-plot(postStimTM,blSink.diWsoaNPS(1,:),'color','k','DisplayName','diWsoaNPS'); hold on;
-plot(postStimTM,blSink.diWsoaPS(1,:),'color','r','DisplayName','diWsoaPS'); hold on;
-plot(postStimTM,blSink.biWsoaPS(1,:),'color','g','DisplayName','monocPS'); hold on;
-plot(postStimTM,blSink.biWsoaNPS(1,:),'color','b','DisplayName','monocNPS'); hold on;
-
-% % % h = figure;
-% % %     plot(postStimTM,ci.diWsoaNPS(1,:),':','color',color.diWsoaNPS,'LineWidth',1); hold on
-% % %     plot(postStimTM,ci.diWsoaNPS(2,:),':','color',color.diWsoaNPS,'LineWidth',1); hold on
-% % %     b = plot(postStimTM,AVG.diWsoaNPS,'color',color.diWsoaNPS,'DisplayName','diWsoaNPS');
-% % %     hold on
-% % %     plot(postStimTM,ci.diWsoaPS(1,:),':','color',color.diWsoa,'LineWidth',1); hold on
-% % %     plot(postStimTM,ci.diWsoaPS(2,:),':','color',color.diWsoa,'LineWidth',1); hold on
-% % %     d = plot(postStimTM,AVG.diWsoaPS,'color',color.diWsoa,'DisplayName','diWsoaPS');
-
-% % %     ylim(ylimit)
+plot(postStimTM,blSink.diWsoaNPS(n,:),'color','k','DisplayName','diWsoaNPS'); hold on;
+plot(postStimTM,blSink.diWsoaPS(n,:),'color','r','DisplayName','diWsoaPS'); hold on;
+plot(postStimTM,blSink.biWsoaPS(n,:),'color','g','DisplayName','monocPS'); hold on;
+plot(postStimTM,blSink.biWsoaNPS(n,:),'color','b','DisplayName','monocNPS'); hold on;
 
 
-    title(strcat(titletext,'session 1'))
+
+    title({titletext2,titletext1})
     vline(0)
     hline(0)
     legend('Location','best')
@@ -134,8 +143,10 @@ plot(postStimTM,blSink.biWsoaNPS(1,:),'color','b','DisplayName','monocNPS'); hol
     ax = gca;
     ax.YRuler.Exponent = 0;
 
-% % %     
-% % %     
-% % %  cd('E:\LaCie\VSS 2019 figs\190508 Draft 7 figs')  
-% % % savefig(h,strcat('SSDP_',AnalyzeSink))
-% % % saveas(h,strcat('SSDP_',AnalyzeSink),'svg')
+% % cd('G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\PerceptPlot')  
+% % if n == 1
+% %     export_fig(exportfigtext,'-pdf','-nocrop') 
+% % else
+% %     export_fig(exportfigtext,'-pdf','-nocrop','-append')
+% % end
+end

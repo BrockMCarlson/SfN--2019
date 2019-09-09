@@ -18,16 +18,22 @@
 % 190327
 % 190410
 % 190715
+% ----- but apperantly there are actuly 2 other sessions with both?????
 
 % End varible goal: SessAvgCSD (day x channels [row] x CSD values at all 800 ms [column] )
 
-clear
-close all
+
 
 %% 1. Editable Variables
-condition = 'biPSWsoa'; %for SfN -- 'biPSWsoa','biNPSWsoa','dicopWsoa_PSflash','dicopWsoa_NPSflash'. 
+condition = {'biPSWsoa','biNPSWsoa','dicopWsoa_PSflash','dicopWsoa_NPSflash'}; 
+%for SfN -- 'biPSWsoa','biNPSWsoa','dicopWsoa_PSflash','dicopWsoa_NPSflash'. 
 % Other --'biPSNOsoa','biNPSNOsoa','dicopNOsoa','biPSWsoa','dichopWsoa_fullTrialPS','dicopWsoa_PSflash',
-savetitle = strcat(condition,'filtered');
+
+for c = 1:size(condition,1)
+clearvars -except condition c
+
+
+savetitle = strcat('PerceptPlot_',condition{c},'filtered');
 pre = 100;
 post = 800;
 sinkAllocate = 'BMC_DfS'; %'BMC_DfS','BMC_ChanNum','Old_DfS','Old_ChanNum'
@@ -40,6 +46,7 @@ cd(baseDirectory)
 load('SessionParams.mat')
 switch sinkAllocate
     case 'BMC_DfS'
+        
         SessionParams.EvalSink = SessionParams.BMC_DfS;
     case 'Old_DfS'
         SessionParams.EvalSink = SessionParams.Old_DfS;
@@ -73,7 +80,7 @@ timerange = [-pre:post];
 AllCSDaligned(:,:,:) = nan(100,[size(timerange,2)],[size(SessionParamsForCondition.Date,1)]);
 
 for a = 1:size(SessionParamsForCondition.Date,1) %big loop
-    clearvars -except savetitle AllCSDaligned a allfolders condition pre post SessionParamsForCondition 
+    clearvars -except savetitle AllCSDaligned a allfolders condition pre post SessionParamsForCondition c
     disp(a);
 % 3.b. enter folder
 for b = 1:size(allfolders,1)
@@ -98,7 +105,7 @@ cd(sessionDay)
         [pEvC,pEvT] = parsEventCodesML(EventCodes,EventTimes);
 
 % 3.d. get LFP for full session day (Channels x timepoints)
-[xLFP,EventCodes,EventTimes] = getLFP(filenameNs2,'ns2',SessionParamsForCondition.V1bank(a),SessionParamsForCondition.sortdirection(a),sessionDay);
+[xLFP,EventCodes,EventTimes] = getLFP(filenameNs2,'ns2',SessionParamsForCondition.V1bank{a},SessionParamsForCondition.sortdirection(a),sessionDay);
 fc = 50;
 fs = 1000;
 [butter_b,butter_a] = butter(4,fc/(fs/2)); 
@@ -110,7 +117,7 @@ LFP = filtLFP'; %(Channels x tiempoints)
 %   MAJOR CONDITIONAL STATEMENT HERE. CALL FROM SESSIONPARAMS FOR PS/NPS
 conditioncount = 0; 
 clear gratingOnsets
-switch condition
+switch condition{c}
     
  case 'biPSNOsoa'
     for  e = 1:length(pEvC)
@@ -272,9 +279,7 @@ switch condition
     column = 1;  
   
    end
-   
- 
-   
+    
  case 'dicopWsoa_PSflash'
    for  e = 1:length(pEvC)
     if strcmp('dCOS',grating.stim(e))           && ... 
@@ -366,13 +371,14 @@ end
 
 
 end %end of 'a' loop, #BigLoop.
-clearvars -except savetitle AllCSDaligned a allfolders condition pre post SessionParamsForCondition 
+clearvars -except savetitle AllCSDaligned a allfolders condition pre post SessionParamsForCondition c
 
 % 5. Average CSD Effect (ACE)
 ACE = squeeze(nanmean(AllCSDaligned,3));
 
-cd('G:\LaCie\SfN 2019')
+cd('G:\LaCie\SfN 2019--figsAndMatVars')
 save(strcat(savetitle,'.mat'))
+end
 
 load gong.mat;
 soundsc(y);
