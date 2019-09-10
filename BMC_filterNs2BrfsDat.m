@@ -1,6 +1,6 @@
 %BMC_filterNs2BrfsDat.m
 %GOAL: process and trigger brfs data
-%   Version 1.1
+%   Version 1.2
 %   Brock Carlson -- created 9/9/19
 %   Taken from BMC_plotSessionDat_brfs_NS2ONLY.m 
 %

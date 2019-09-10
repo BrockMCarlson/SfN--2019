@@ -1,25 +1,30 @@
 %BMC_trigToEventCodesAndPlotBrfs.m
 %GOAL: load the previously filtered and saved brfs data, trigger, and plot
 %
-%   Version 1.1
+%   Version 1.2
 %   Brock Carlson -- created 9/9/19
 %   
 %   Current plotting goal: plot brfs monocular fCSDs for each ori and eye
 %   under scaled conditions to see if an effect exists.
 %
 %   DOES NOT TRIGGER TO PHOTO DIODE
+%
+%   EDIT: 9/10/19: 2x2 plot comparing eye and ori not possible because the
+%   PE was always stimulated first. 1x2 plot comparing 1 ori to the
+%   orthagonal grating is no the plotting output.
 
 
 clear
 
 %% EDITABLE VARIABLES
-filename = {'160102_E_brfs001'}';
-% % % filename = {'160102_E_brfs001','160427_E_brfs001','160510_E_brfs001'}';
+% % filename = {'160102_E_brfs001'}';
+filename = {'160102_E_brfs001','160427_E_brfs001','160510_E_brfs001'}';
 sinkAllocate = 'BMC_DfS';
 pre = 50;
-post = 1600;
+post = 800;
 TM = -pre:1:post;
 nameSaveType = 'LFPandCSDof';
+figtype = 'monoc_1oriVS2ori';
 
 
 % Computer-specific editable variables 
@@ -36,7 +41,7 @@ end
 
 
 for a = 1:size(filename,1)
-    clearvars -except a filename sinkAllocate pre post TM savefiledir nameSaveType
+    clearvars -except a filename sinkAllocate pre post TM savefiledir nameSaveType figtype
     
     disp(filename{a})
     
@@ -84,18 +89,21 @@ PARAMS = SessionParams(dayID,:);
 %Set Channel vector based on the number of electrode contacts
 chans = 1:PARAMS.el;
 
-%% LOAD PROCESSED DATA
+%% LOAD FILTERED CONTINUOUS DATA
+% The saved .mat variables should contain both LFP and CSD
 cd(savefiledir)
 loadname = strcat(nameSaveType,filename{a},'.mat');
 load(loadname)
 
 
 
-%% TRIGGER TO pEvC/pEvT at 1 kHz 
-[grating,readGRATINGfile] = formatAndOpenGratingTxt(dataDirectory,filename{a});
+
 
 
 %% DIG INTO PREALLOCATED VARIABLES
+%
+%% Load grating
+[grating,readGRATINGfile] = formatAndOpenGratingTxt(dataDirectory,filename{a});
 
 %% Load event event codes and times
 readNEVfile = strcat(dataDirectory,filesep,filename{a},'.nev');
@@ -107,11 +115,10 @@ EventTimes      = floor(NEV.Data.SerialDigitalIO.TimeStampSec.*1000); % convert 
 %% SORT pEvC/pEvT TO MATCH GRAITNG VARIABLE
 % So far all of these data are from EVERY trial, including trials where
 % animal breaks fixation. Lets get rid of those and make a new structure
-% with the grating info and the stimulus onsets 
-
-% Note, STIM.onsets, is now an index of the column position for the...
-% stimulus onset in the 30kHz data. This is why, for using it with the ns2
-% file, we need to downsample to STIM.onsetsdown.
+% with the grating info and the stimulus onsets. 
+    % NOTE: STIM.onsets, is now an index of the column position for the...
+    % stimulus onset in the 30kHz data. This is why, for using it with the ns2
+    % file, we need to downsample to STIM.onsetsdown.
 STIM            = sortStimandTimeData(grating,pEvC,pEvT,'stim'); 
 STIM.onsetsdown         = floor(STIM.onsets./30); % necessary even for ns2 file analysis and use of photo diode. pEvT is in 30kHz sampling time. 
 
@@ -199,7 +206,7 @@ end
     
 
 
-%% AVERAGE AND BASELINE-CORRECT TRIGGERED DATA
+%% AVERAGE AND BASELINE-CORRECT TRIGGERED DATA 
 
 %% Average
 % Avgerage TRIG
@@ -214,6 +221,7 @@ for ffav = 1:numel(firstfields.TRIG_BRFS)
     for avtr=1:numel(subfields.TRIG_BRFS)
         AVG_BRFS.(firstfields.TRIG_BRFS{ffav}).(subfields.TRIG_BRFS{avtr})  = mean(TRIG_BRFS.(firstfields.TRIG_BRFS{ffav}).(subfields.TRIG_BRFS{avtr}),3);
     end
+    
 end
 
 %% Baseline corect
@@ -232,21 +240,20 @@ for ffbl = 1:numel(firstfields.AVG_BRFS)
         BLavg_BRFS.(firstfields.AVG_BRFS{ffbl}).(subfields.AVG_BRFS{blavg})  = AVG_BRFS.(firstfields.AVG_BRFS{ffbl}).(subfields.AVG_BRFS{blavg}) - bl;
     end
 end
-%% Filter and interpolate CSD, ns2 and ns5
-% AVG
+%% Filter and interpolate CSD
+% filter AVG struct
 AVG.ns2fCSD = filterCSD(AVG.ns2CSD);
-AVG_BRFS.diop_simult_NPS.ns2fCSD = filterCSD(AVG_BRFS.diop_simult_NPS.ns2CSD);
+firstfields.AVG_BRFS = fieldnames(AVG_BRFS);
+for fffcsd = 1:numel(firstfields.AVG_BRFS)
+    AVG_BRFS.(firstfields.AVG_BRFS{fffcsd}).ns2fCSD = filterCSD(AVG_BRFS.(firstfields.AVG_BRFS{fffcsd}).ns2CSD); 
+end
 
-% BLavg
+% filter BLavg struct
 BLavg.ns2fCSD       = filterCSD(BLavg.ns2CSD);
-BLavg_BRFS.diop_simult_NPS.ns2fCSD = filterCSD(BLavg_BRFS.diop_simult_NPS.ns2CSD);
-
-%% END OF UPDATE FROM 9/9/19
-%%%%%
-%%%%%
-%%%%%
-%%%%%%%%% EVERY TYPE OF BRFS CONDITION TRIGGERS PROPERLY!! NOW I JUST HAVE
-%%%%%%%%% TO PLOT THE 4X4GRID. TOMORROW AM.
+firstfields.BLavg_BRFS = fieldnames(BLavg_BRFS);
+for ffblfcsd = 1:numel(firstfields.BLavg_BRFS)
+    BLavg_BRFS.(firstfields.BLavg_BRFS{ffblfcsd}).ns2fCSD = filterCSD(BLavg_BRFS.(firstfields.BLavg_BRFS{ffblfcsd}).ns2CSD); 
+end
 
 %% POSTPROCESS
 % downsample and get PSD
@@ -260,52 +267,90 @@ BLavg_BRFS.diop_simult_NPS.ns2fCSD = filterCSD(BLavg_BRFS.diop_simult_NPS.ns2CSD
     % create alignment matrices if necessary at a later date
     %
     
-%% PLOT 1,2,3,4,5
-% LFP, CSDshadedLine, fCSD, aMUA, PSD
+%% Plot
+climit = {800,1000,800};
+
 figure
-%LFPline
-subplot(1,3,1)
-f_ShadedLinePlotbyDepth(BLavg_BRFS.diop_simult_NPS.ns2LFP,chans,TM,[],1)
-plot([0 0], ylim,'k')
-plot([800 800], ylim,'k')
-title({'LFP',filename{a}}, 'Interpreter', 'none')
-xlabel('time (ms)')
-ylabel('Contacts indexed down from surface')
-
-% CSD line
-subplot(1,3,2)
-f_ShadedLinePlotbyDepth(BLavg_BRFS.diop_simult_NPS.ns2CSD,chans,TM,[],1)
-plot([0 0], ylim,'k')
-plot([800 800], ylim,'k')
-title({'CSD',filename{a}}, 'Interpreter', 'none')
-xlabel('time (ms)')
-
-% fCSD
-subplot(1,3,3)
-imagesc(TM,chans,BLavg_BRFS.diop_simult_NPS.ns2fCSD); 
+set(gcf, 'Position', [680 338 711 760]);
+subplot(1,2,1)
+imagesc(TM,chans,BLavg_BRFS.monoc_PS.ns2fCSD); 
 colormap(flipud(jet));
-climit = max(abs(get(gca,'CLim'))*.8);
-set(gca,'CLim',[-climit climit],'Box','off','TickDir','out')
+% % climit = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
 plot([800 800], ylim,'k')
 clrbar = colorbar;
-title({'interpolate CSD',filename{a}}, 'Interpreter', 'none')
+title({'monoc_ori1',filename{a}}, 'Interpreter', 'none')
 xlabel('time (ms)')
 clrbar.Label.String = 'nA/mm^3';
 
-cd(savefiledir)
 
-%% SAVE
-% % % cd(savefiledir)
-% % % saveas(gcf, filename{a}, 'fig')
-% % % saveas(gcf, filename{a}, 'pdf')
-% % % saveas(gcf, filename{a}, 'png')
+subplot(1,2,2)
+imagesc(TM,chans,BLavg_BRFS.monoc_NPS.ns2fCSD); 
+colormap(flipud(jet));
+% % climit = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+plot([800 800], ylim,'k')
+clrbar = colorbar;
+title({'monoc_ori2',filename{a}}, 'Interpreter', 'none')
+xlabel('time (ms)')
+clrbar.Label.String = 'nA/mm^3';
+
+set(gcf, 'Position', [680 338 711 760]);
+
+
+%% SAVE figs
+cd(savefiledir)
+figsavename = strcat(figtype,'_',filename{a});
+saveas(gcf, figsavename, 'fig')
+saveas(gcf, figsavename, 'pdf')
+saveas(gcf, figsavename, 'png')
+    
+
 
 
 end
 
 
+
+
+% % % % %% PLOT 1,2,3,4 "Session Data diagnostic"
+% % % % % LFP, CSDshadedLine, fCSD, aMUA, 
+% % % % figure
+% % % % %LFPline
+% % % % subplot(1,3,1)
+% % % % f_ShadedLinePlotbyDepth(BLavg_BRFS.diop_simult_NPS.ns2LFP,chans,TM,[],1)
+% % % % plot([0 0], ylim,'k')
+% % % % plot([800 800], ylim,'k')
+% % % % title({'LFP',filename{a}}, 'Interpreter', 'none')
+% % % % xlabel('time (ms)')
+% % % % ylabel('Contacts indexed down from surface')
+% % % % 
+% % % % % CSD line
+% % % % subplot(1,3,2)
+% % % % f_ShadedLinePlotbyDepth(BLavg_BRFS.diop_simult_NPS.ns2CSD,chans,TM,[],1)
+% % % % plot([0 0], ylim,'k')
+% % % % plot([800 800], ylim,'k')
+% % % % title({'CSD',filename{a}}, 'Interpreter', 'none')
+% % % % xlabel('time (ms)')
+% % % % 
+% % % % % fCSD
+% % % % subplot(1,3,3)
+% % % % imagesc(TM,chans,BLavg_BRFS.diop_simult_NPS.ns2fCSD); 
+% % % % colormap(flipud(jet));
+% % % % climit = max(abs(get(gca,'CLim'))*.8);
+% % % % set(gca,'CLim',[-climit climit],'Box','off','TickDir','out')
+% % % % hold on;
+% % % % plot([0 0], ylim,'k')
+% % % % plot([800 800], ylim,'k')
+% % % % clrbar = colorbar;
+% % % % title({'interpolate CSD',filename{a}}, 'Interpreter', 'none')
+% % % % xlabel('time (ms)')
+% % % % clrbar.Label.String = 'nA/mm^3';
+% % % % 
 
 
 
