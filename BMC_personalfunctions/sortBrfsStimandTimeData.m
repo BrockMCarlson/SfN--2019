@@ -58,10 +58,79 @@ end
 
 clear STIM_BRFS
 %% Monocular PS
-%%%%% ADD
-% Monocular NPS
-    %%%%% ADD
+     obs = 0; clear e codes stim times
+    for  e = 1:length(pEvC)
+    codes  = pEvC{e};
+    stim   = find(grating.trial == e);
+    times  = pEvT{e}; 
+         if strcmp('Monocular',grating.stim(e))           && ... 
+                grating.soa(e)          ==  0       && ...
+                grating.s1_contrast(e)  >= .5     && ...
+                grating.s1_tilt(e)      ==  PARAMS.PS       
+            if ~any(pEvC{e} == 96) % I could add something here to pull out other onsets if needed.
+                 continue
+            end     
+            stimon   =  pEvC{e} == 23;
+            stimoff  =  pEvC{e} == 24;
+            idx = find(stimon);
+            if      numel(idx) == 1     % there is no soa.
+                start_noSoa  =  pEvT{e}(idx); 
+            else
+                disp('error, please check diop_simult_PS loop')
+            end
+            stop    =  pEvT{e}(stimoff);
+            obs = obs +1;
+            STIM_BRFS.monoc_PS.start_noSoa(obs,:) = start_noSoa;
+            STIM_BRFS.monoc_PS.stop(obs,:) = stop;
+            STIM_BRFS.monoc_PS.start_noSoaDown(obs,:) = start_noSoa./30;
+            STIM_BRFS.monoc_PS.stopDown(obs,:) = stop./30;            
+            STIM_BRFS.monoc_PS.trstart(obs,:)  = double(times(find(codes == 9,1,'first')));
+            STIM_BRFS.monoc_PS.trend(obs,:)    = double(times(find(codes == 18,1,'first')));
+            STIM_BRFS.monoc_PS.obs(obs,:)  = obs; 
+            for f = 1:length(stimfeatures)
+                 STIM_BRFS.monoc_PS.(stimfeatures{f})(obs,:) = grating.(stimfeatures{f})(stim);
+            end
+         end
 
+    end
+    
+% Monocular NPS
+      obs = 0; clear e codes stim times
+    for  e = 1:length(pEvC)
+    codes  = pEvC{e};
+    stim   = find(grating.trial == e);
+    times  = pEvT{e}; 
+         if strcmp('Monocular',grating.stim(e))           && ... 
+                grating.soa(e)          ==  0       && ...
+                grating.s1_contrast(e)  >= .5     && ...
+                grating.s1_tilt(e)      ==  PARAMS.NPS       
+            if ~any(pEvC{e} == 96) % I could add something here to pull out other onsets if needed.
+                 continue
+            end     
+            stimon   =  pEvC{e} == 23;
+            stimoff  =  pEvC{e} == 24;
+            idx = find(stimon);
+            if      numel(idx) == 1     % there is no soa.
+                start_noSoa  =  pEvT{e}(idx); 
+            else
+                disp('error, please check diop_simult_PS loop')
+            end
+            stop    =  pEvT{e}(stimoff);
+            obs = obs +1;
+            STIM_BRFS.monoc_NPS.start_noSoa(obs,:) = start_noSoa;
+            STIM_BRFS.monoc_NPS.stop(obs,:) = stop;
+            STIM_BRFS.monoc_NPS.start_noSoaDown(obs,:) = start_noSoa./30;
+            STIM_BRFS.monoc_NPS.stopDown(obs,:) = stop./30;            
+            STIM_BRFS.monoc_NPS.trstart(obs,:)  = double(times(find(codes == 9,1,'first')));
+            STIM_BRFS.monoc_NPS.trend(obs,:)    = double(times(find(codes == 18,1,'first')));
+            STIM_BRFS.monoc_NPS.obs(obs,:)  = obs; 
+            for f = 1:length(stimfeatures)
+                 STIM_BRFS.monoc_NPS.(stimfeatures{f})(obs,:) = grating.(stimfeatures{f})(stim);
+            end
+         end
+
+    end
+     
  %'diop_simult_PS'
      obs = 0; clear e codes stim times
     for  e = 1:length(pEvC)

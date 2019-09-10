@@ -14,7 +14,7 @@
 if strcmp(getenv('USER'),'maierav')
     addpath(genpath('/Users/alex 1/Desktop/LAB/Brock'));
     drname        = {'/Users/alex 1/Desktop/LAB/Brock/Data'};
-else
+elseif strcmp(getenv('USERNAME'),'Brock Carlson')
     addpath(genpath('G:\LaCie\all BRFS'));
     drname        = {'G:\LaCie\all BRFS\160102_E\'}; %{'G:\LaCie\all BRFS\160427_E\','G:\LaCie\all BRFS\160510_E\'};
 end
