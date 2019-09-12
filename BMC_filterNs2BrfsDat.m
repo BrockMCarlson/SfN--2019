@@ -13,12 +13,9 @@
 clear
 
 %% EDITABLE VARIABLES
-% % % filename = {'160102_E_brfs001'}';
-filename = {'160102_E_brfs001','160427_E_brfs001','160510_E_brfs001'}';
+filename = {'160510_E_rfori002'}';
+% % % filename = {'160102_E_rfori002','160427_E_rfori002','160510_E_rfori001'}';
 sinkAllocate = 'BMC_DfS';
-pre = 50;
-post = 1600;
-TM = -pre:1:post;
 nameSaveType = 'LFPandCSDof';
 
 
