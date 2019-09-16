@@ -20,8 +20,8 @@ clear
 % % filename = {'160102_E_brfs001'}';
 filename = {'160102_E_brfs001','160427_E_brfs001','160510_E_brfs001'}';
 sinkAllocate = 'BMC_DfS';
-pre = 850;
-post = 800;
+pre = 50;
+post = 250;
 TM = -pre:1:post;
 nameSaveType = 'LFPandCSDof';
 figtype = 'brfs_PSvsNPS';
@@ -203,8 +203,15 @@ for ffstim=1:numel(fields.STIM_BRFS)
     end       
 end
 
-    
+% Concatonate all monocular conditions (i.e. average monocular PS,
+% diop_800soa_PS, and dichop_800soa_NPS as the PS monocular condition. Ten
+% average monocular NPS, diop_800soa_NPS, and dichop_800soa_PS as the NPS
+% monocualr condition)     
 
+TRIG_BRFS.allmonocPS.ns2CSD =  cat(3,TRIG_BRFS.monoc_PS.ns2CSD,TRIG_BRFS.diop_800soa_PS.ns2CSD);
+TRIG_BRFS.allmonocPS.ns2CSD =  cat(3,TRIG_BRFS.allmonocPS.ns2CSD,TRIG_BRFS.dichop_800soa_brfsNPSflash.ns2CSD);
+TRIG_BRFS.allmonocNPS.ns2CSD =  cat(3,TRIG_BRFS.monoc_NPS.ns2CSD,TRIG_BRFS.diop_800soa_NPS.ns2CSD);
+TRIG_BRFS.allmonocNPS.ns2CSD =  cat(3,TRIG_BRFS.allmonocNPS.ns2CSD,TRIG_BRFS.dichop_800soa_brfsPSflash.ns2CSD);
 
 %% AVERAGE AND BASELINE-CORRECT TRIGGERED DATA 
 
@@ -223,6 +230,10 @@ for ffav = 1:numel(firstfields.TRIG_BRFS)
     end
     
 end
+
+
+
+
 
 %% Baseline corect
 % bl AVG
@@ -268,12 +279,12 @@ end
     %
     
 %% Plot
-climit = {1100,1200,1000};
+climit = {600,1000,1000};
 
 figure;
 set(gcf, 'Position', [680 338 711 760]);
 subplot(1,2,1)
-imagesc(TM,chans,BLavg_BRFS.dichop_800soa_brfsPSflash.ns2fCSD); 
+imagesc(TM,chans,BLavg_BRFS.allmonocPS.ns2fCSD); 
 colormap(flipud(jet));
 set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
 % % climit = max(abs(get(gca,'CLim'))*.8);
@@ -282,13 +293,13 @@ hold on;
 plot([0 0], ylim,'k')
 plot([800 800], ylim,'k')
 clrbar = colorbar;
-title({'brfsPSflash',filename{a}}, 'Interpreter', 'none')
+title({'all brfs monocular ori1 presented to NDE',filename{a}}, 'Interpreter', 'none')
 xlabel('time (ms)')
 clrbar.Label.String = 'nA/mm^3';
 
 
 subplot(1,2,2)
-imagesc(TM,chans,BLavg_BRFS.dichop_800soa_brfsNPSflash.ns2fCSD); 
+imagesc(TM,chans,BLavg_BRFS.allmonocNPS.ns2fCSD); 
 colormap(flipud(jet));
 set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
 % % climit = max(abs(get(gca,'CLim'))*.8);
@@ -297,11 +308,11 @@ hold on;
 plot([0 0], ylim,'k')
 plot([800 800], ylim,'k')
 clrbar = colorbar;
-title({'brfsNPSflash',filename{a}}, 'Interpreter', 'none')
+title({'all brfs monocular ori2 presented to NDE',filename{a}}, 'Interpreter', 'none')
 xlabel('time (ms)')
 clrbar.Label.String = 'nA/mm^3';
 
-set(gcf, 'Position', [567 173 1210 925]);
+set(gcf, 'Position', [75 501 517 569]);
 
 
 %% SAVE figs
