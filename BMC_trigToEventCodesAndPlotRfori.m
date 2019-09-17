@@ -80,7 +80,7 @@ end
 % get info needed for day I'm analyzing
 dayID = strfind(SessionParams.Date',str2double(filename{a}(1:6)));
 PARAMS = SessionParams(dayID,:);
-if filename{a} == '160427_E_rfori002'
+if contains(filename{a},'160427_E_rfori002')
    PARAMS.PS = 125;
    PARAMS.NPS = 35;
 end
