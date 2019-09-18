@@ -1,13 +1,14 @@
-%BMC_alignAcrossDaysAndPlot_RFORIandBRFS.m
+%BMC_alignAcrossDaysAndPlot_BRFS-ONLY.m
 %GOAL: align and average across days the PEvsNPEvsPSvsNPS. The 2x2plot. The
 %RFORI sessions contain the DE response and the BRFS contain the NDE
 %response under monocular conditions.
 %
-%   Version 1.1
-%   Brock Carlson -- created 9/16/19
+%   Version 1.0
+%   Brock Carlson -- created 9/17/19
 %   
-%   Current plotting goal: plot rfori for each orientation presented in
-%   brfs and the two orientations of brfs under monocular conditions.
+%   Current plotting goal: plot brfs PS after flash vs null. This code was
+%   taken from the RFORIandBRFS alignment code and removed all rfori
+%   elements. Hopefully this will clean it up.
 %
 %   DOES NOT TRIGGER TO PHOTO DIODE
 
@@ -17,13 +18,13 @@ clear
 
 %% EDITABLE VARIABLES
 % % filename = {'160102_E_brfs001'};
-filename = {'160102_E_rfori002','160102_E_brfs001','160427_E_rfori002','160427_E_brfs001','160510_E_rfori002','160510_E_brfs001'}';
+filename = {'160102_E_brfs001','160427_E_brfs001','160510_E_brfs001'}';
 sinkAllocate = 'BMC_DfS';
-pre = 50;
-post = 250;
+pre = 850;
+post = 800;
 TM = -pre:1:post;
 nameSaveType = 'LFPandCSDof';
-figtype = 'AlignedSessionEyeandOri';
+figtype = 'AlignedSessionBRFSeffect';
 
 
 
@@ -123,21 +124,7 @@ EventTimes      = floor(NEV.Data.SerialDigitalIO.TimeStampSec.*1000); % convert 
 STIM            = sortStimandTimeData(grating,pEvC,pEvT,'stim'); 
 STIM.onsetsdown         = floor(STIM.onsets./30); % necessary even for ns2 file analysis and use of photo diode. pEvT is in 30kHz sampling time. 
 
-if contains(filename{a},'brfs')
     STIM_BRFS = sortBrfsStimandTimeData(grating,pEvC,pEvT,PARAMS);
-elseif contains(filename{a},'rfori')
-    clear i count1 count2
-    count1 = 0; count2 = 0;
-    for i = 1:size(STIM.tilt,1)
-        if STIM.tilt(i) == PARAMS.PS
-            count1 = count1+1;
-            STIM.ori1onsets(count1,:) = STIM.onsetsdown(i);
-        elseif STIM.tilt(i) == PARAMS.NPS
-            count2 = count2+1;
-            STIM.ori2onsets(count2,:) = STIM.onsetsdown(i);
-        end    
-    end
-end
 
 
 % get dimensions for preallocation
@@ -175,7 +162,6 @@ end
 
 
 %% trig brfs onsets or rfori onsets
-if contains(filename{a},'brfs')
     fields.STIM_BRFS = fieldnames(STIM_BRFS);
     for ffstim=1:numel(fields.STIM_BRFS)
 
@@ -230,38 +216,8 @@ if contains(filename{a},'brfs')
         TRIG_BRFS.allmonocNPS.ns2LFP =  cat(3,TRIG_BRFS.monoc_NPS.ns2LFP,TRIG_BRFS.diop_800soa_NPS.ns2LFP);
         TRIG_BRFS.allmonocNPS.ns2LFP =  cat(3,TRIG_BRFS.allmonocNPS.ns2LFP,TRIG_BRFS.dichop_800soa_brfsPSflash.ns2LFP);
 
-elseif contains(filename{a},'rfori')
-    %% trig ori1 and ori2 onsets
-    numTriggers.STIM.ori1onsets = size(STIM.ori1onsets,1);
-    numTriggers.STIM.ori2onsets = size(STIM.ori2onsets,1);
-    %preallocate
-    TRIG.ori1LFP         = NaN( contactNum,(post + pre + 1),numTriggers.STIM.ori1onsets); 
-    TRIG.ori1CSD         = NaN( contactNum,(post + pre + 1),numTriggers.STIM.ori1onsets); 
-    TRIG.ori2LFP         = NaN( contactNum,(post + pre + 1),numTriggers.STIM.ori2onsets); 
-    TRIG.ori2CSD         = NaN( contactNum,(post + pre + 1),numTriggers.STIM.ori2onsets);   
-    %%% DATA MUST BE DOWNSAMPLED TO 1KH IN ORDER TO TRIGGER PROPERLY
-    for singleCh = 1:contactNum 
-        for singleTrigger = 1:numTriggers.STIM.ori1onsets
-            timeOfTrigger = STIM.ori1onsets(singleTrigger);
-            windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
-            % output is (Ch x time x triggerNumber)
-            TRIG.ori1LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
-            TRIG.ori1CSD(singleCh,:,singleTrigger)       = ns2CSD(singleCh,windowOfTrigger);
 
-        end
-    end
-    for singleCh = 1:contactNum 
-        for singleTrigger = 1:numTriggers.STIM.ori2onsets
-            timeOfTrigger = STIM.ori2onsets(singleTrigger);
-            windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
-            % output is (Ch x time x triggerNumber)
-            TRIG.ori2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
-            TRIG.ori2CSD(singleCh,:,singleTrigger)       = ns2CSD(singleCh,windowOfTrigger);
 
-        end
-    end
-
-end
 
 
 %% AVERAGE AND BASELINE-CORRECT TRIGGERED DATA 
@@ -273,16 +229,17 @@ for avtr=1:numel(fields.TRIG)
     AVG.(fields.TRIG{avtr})  = mean(TRIG.(fields.TRIG{avtr}),3);
 end
 
-if contains(filename{a},'brfs')
-    firstfields.TRIG_BRFS = fieldnames(TRIG_BRFS);
-    for ffav = 1:numel(firstfields.TRIG_BRFS)
-        subfields.TRIG_BRFS = fieldnames(TRIG_BRFS.(firstfields.TRIG_BRFS{ffav}));
-        for avtr=1:numel(subfields.TRIG_BRFS)
-            AVG_BRFS.(firstfields.TRIG_BRFS{ffav}).(subfields.TRIG_BRFS{avtr})  = mean(TRIG_BRFS.(firstfields.TRIG_BRFS{ffav}).(subfields.TRIG_BRFS{avtr}),3);
-        end
-
+firstfields.TRIG_BRFS = fieldnames(TRIG_BRFS);
+for ffav = 1:numel(firstfields.TRIG_BRFS)
+    subfields.TRIG_BRFS = fieldnames(TRIG_BRFS.(firstfields.TRIG_BRFS{ffav}));
+    for avtr=1:numel(subfields.TRIG_BRFS)
+        AVG_BRFS.(firstfields.TRIG_BRFS{ffav}).(subfields.TRIG_BRFS{avtr})  = mean(TRIG_BRFS.(firstfields.TRIG_BRFS{ffav}).(subfields.TRIG_BRFS{avtr}),3);
     end
+
 end
+
+
+
 
 
 
@@ -291,16 +248,7 @@ end
 
 % cut the contacts' index based on the cortex limits (rftop and rfbtm)
 
-
-
-
-
-
-%%% PROBLEM WITH BRFS HERE
-%
-% ---- all monoc PS and NPS come out the same
-%%%%%%%%%
-    if contains(filename{a},'brfs')
+%%%%% I THINK I DID SOMETHING WRONG HERE!!!!!!!!
         firstfields.AVG_BRFS = fieldnames(AVG_BRFS);
         for ffal = 1:numel(firstfields.AVG_BRFS)
             subfields.AVG_BRFS = fieldnames(AVG_BRFS.(firstfields.AVG_BRFS{ffal}));
@@ -315,24 +263,11 @@ end
                 ALIGNED(a).(firstfields.AVG_BRFS{ffal}).(subfields.AVG_BRFS{sfal})(y:z,:) = cutmatrix.(firstfields.AVG_BRFS{ffal}).(subfields.AVG_BRFS{sfal}) ;                      
             end
         end
-    elseif contains(filename{a},'rfori')
-        fields.AVG = fieldnames(AVG);
-        for ffalrf=1:numel(fields.AVG)
-            cutmatrix.rfori.(fields.AVG{ffalrf})  = AVG.(fields.AVG{ffalrf})(PARAMS.rftop:PARAMS.rfbtm,:);
-            ALIGNED(a).rfori.(fields.AVG{ffalrf}) = nan(50,size(TM,2));
-            % creat row assignments for the ALIGNED matrix
-            x = PARAMS.EvalSink-PARAMS.rftop+1; % the sink's row# in cutmatrix
-            y = 25-x+1; %rftop's location in ALIGNED
-            z = y+size(cutmatrix.rfori.(fields.AVG{ffalrf}),1)-1; %rfbtm's locaiton in ALIGNED.    
-            ALIGNED(a).rfori.(fields.AVG{ffalrf})(y:z,:) = cutmatrix.rfori.(fields.AVG{ffalrf}) ;
-        end
-    end
 
-
+%%%%%%% CHECK ABOVE TO SEE WHAT I DID WRONG??
 
 
 end
-clearvars -except  filename sinkAllocate pre post TM savefiledir nameSaveType figtype ALIGNED
 
 
 %% Average across alignment
@@ -346,58 +281,43 @@ clearvars -except  filename sinkAllocate pre post TM savefiledir nameSaveType fi
 %        re-do in the future.
 %
 
-% PExPS -- rfori ori1
-PExPS = nan(50,size(TM,2),3);
-PExPS(:,:,1) = ALIGNED(1).rfori.ori1CSD;
-PExPS(:,:,2) = ALIGNED(3).rfori.ori1CSD;
-PExPS(:,:,3) = ALIGNED(5).rfori.ori1CSD;
-AlAvg.PExPS = nanmean(PExPS,3);
 
-% PExNPS -- rfori ori2
-PExNPS = nan(50,size(TM,2),3);
-PExNPS(:,:,1) = ALIGNED(1).rfori.ori2CSD;
-PExNPS(:,:,2) = ALIGNED(3).rfori.ori2CSD;
-PExNPS(:,:,3) = ALIGNED(5).rfori.ori2CSD;
-AlAvg.PExNPS = nanmean(PExNPS,3);
+% PSflash -- brfs dichop_800soa_brfsPSflash
+PSflash = nan(50,size(TM,2),3);
+PSflash(:,:,1) = ALIGNED(1).dichop_800soa_brfsPSflash.ns2CSD;
+PSflash(:,:,2) = ALIGNED(2).dichop_800soa_brfsPSflash.ns2CSD;
+PSflash(:,:,3) = ALIGNED(3).dichop_800soa_brfsPSflash.ns2CSD;
+AlAvg.PSflash = nanmean(PSflash,3);
 
-% NPExPS -- brfs allmonocPS
-NPExPS = nan(50,size(TM,2),3);
-NPExPS(:,:,1) = ALIGNED(2).allmonocPS.ns2CSD;
-NPExPS(:,:,2) = ALIGNED(4).allmonocPS.ns2CSD;
-NPExPS(:,:,3) = ALIGNED(6).allmonocPS.ns2CSD;
-AlAvg.NPExPS = nanmean(NPExPS,3);
-
-% NPExNPS -- brfs allmonocNPS
-NPExNPS = nan(50,size(TM,2),3);
-NPExNPS(:,:,1) = ALIGNED(2).allmonocNPS.ns2CSD;
-NPExNPS(:,:,2) = ALIGNED(4).allmonocNPS.ns2CSD;
-NPExNPS(:,:,3) = ALIGNED(6).allmonocNPS.ns2CSD;
-AlAvg.NPExNPS = nanmean(NPExNPS,3);
+% nullFlash -- brfs dichop_800soa_brfsNPSflash
+nullFlash = nan(50,size(TM,2),3);
+nullFlash(:,:,1) = ALIGNED(1).dichop_800soa_brfsNPSflash.ns2CSD;
+nullFlash(:,:,2) = ALIGNED(2).dichop_800soa_brfsNPSflash.ns2CSD;
+nullFlash(:,:,3) = ALIGNED(3).dichop_800soa_brfsNPSflash.ns2CSD;
+AlAvg.nullFlash = nanmean(nullFlash,3);
 
 %% Baseline average the alignment
+searchvector = (-50:1:0);
+[~,blidx] = ismember(searchvector,TM);
+
 
 clear bl
-bl.PExPS  = mean(AlAvg.PExPS(:,TM<0),2);
-bl.PExNPS  = mean(AlAvg.PExNPS(:,TM<0),2);
-bl.NPExPS  = mean(AlAvg.NPExPS(:,TM<0),2);
-bl.NPExNPS  = mean(AlAvg.NPExNPS(:,TM<0),2);
-AlBLavg.PExPS  = AlAvg.PExPS - bl.PExPS;
-AlBLavg.PExNPS  = AlAvg.PExNPS - bl.PExNPS;
-AlBLavg.NPExPS  = AlAvg.NPExPS - bl.NPExPS;
-AlBLavg.NPExNPS  = AlAvg.NPExNPS - bl.NPExNPS;
+bl.PSflash  = mean(AlAvg.PSflash(:,blidx),2);
+bl.nullFlash  = mean(AlAvg.nullFlash(:,blidx),2);
+
+AlBLavg.PSflash  = AlAvg.PSflash - bl.PSflash;
+AlBLavg.nullFlash  = AlAvg.nullFlash - bl.nullFlash;
 
 %% Cut matrix for cortical depth
-AlCut.PExPS = AlBLavg.PExPS(14:31,:);
-AlCut.PExNPS = AlBLavg.PExNPS(14:31,:);
-AlCut.NPExPS = AlBLavg.NPExPS(14:31,:);
-AlCut.NPExNPS = AlBLavg.NPExNPS(14:31,:);
+
+AlCut.PSflash = AlBLavg.PSflash(14:31,:);
+AlCut.nullFlash = AlBLavg.nullFlash(14:31,:);
 
 %% Filter and interpolate CSD across averaged alignment
 % filter AVG struct
-AlFilt.PExPS = filterCSD(AlCut.PExPS);
-AlFilt.PExNPS = filterCSD(AlCut.PExNPS);
-AlFilt.NPExPS = filterCSD(AlCut.NPExPS);
-AlFilt.NPExNPS = filterCSD(AlCut.NPExNPS);
+
+AlFilt.PSflash = filterCSD(AlCut.PSflash);
+AlFilt.nullFlash = filterCSD(AlCut.nullFlash);
 
 
 
@@ -406,74 +326,41 @@ AlFilt.NPExNPS = filterCSD(AlCut.NPExNPS);
 
 %% Plot
 corticaldepth = (1.1:-0.1:-0.5);
-climit = 1000;
+% % climit = 1000;
 
 figure;
-set(gcf, 'Position', [680 338 711 760]);
-subplot(2,2,1)
-imagesc(TM,corticaldepth,AlFilt.PExPS); 
+subplot(1,2,1)
+imagesc(TM,corticaldepth,AlFilt.PSflash); 
 colormap(flipud(jet));
 % % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-% climit = max(abs(get(gca,'CLim'))*.8);
+climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
-plot([800 800], ylim,'k')
+plot([-800 -800], ylim,'k')
 clrbar = colorbar;
-title({'Preferred eye. Preferred stim'}, 'Interpreter', 'none')
+title({'BRFS. PS flashed'}, 'Interpreter', 'none')
 ylabel('cortical depth')
 xlabel('time (ms)')
 clrbar.Label.String = 'nA/mm^3';
 
 
-set(gcf, 'Position', [680 338 711 760]);
-subplot(2,2,2)
-imagesc(TM,corticaldepth,AlFilt.PExNPS); 
+subplot(1,2,2)
+imagesc(TM,corticaldepth,AlFilt.nullFlash); 
 colormap(flipud(jet));
 % % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-% climit = max(abs(get(gca,'CLim'))*.8);
+climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
-plot([800 800], ylim,'k')
+plot([-800 -800], ylim,'k')
 clrbar = colorbar;
-title({'Preferred eye. Non-Pref stim'}, 'Interpreter', 'none')
-xlabel('time (ms)')
-clrbar.Label.String = 'nA/mm^3';
-
-set(gcf, 'Position', [680 338 711 760]);
-subplot(2,2,3)
-imagesc(TM,corticaldepth,AlFilt.NPExPS); 
-colormap(flipud(jet));
-% % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-% climit = max(abs(get(gca,'CLim'))*.8);
-set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
-hold on;
-plot([0 0], ylim,'k')
-plot([800 800], ylim,'k')
-clrbar = colorbar;
-title({'Non-pref eye. Preferred stim'}, 'Interpreter', 'none')
-ylabel('cortical depth')
+title({'BRFS. Null Flashed'}, 'Interpreter', 'none')
 xlabel('time (ms)')
 clrbar.Label.String = 'nA/mm^3';
 
 
-set(gcf, 'Position', [680 338 711 760]);
-subplot(2,2,4)
-imagesc(TM,corticaldepth,AlFilt.NPExNPS); 
-colormap(flipud(jet));
-% % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-% climit = max(abs(get(gca,'CLim'))*.8);
-set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
-hold on;
-plot([0 0], ylim,'k')
-plot([800 800], ylim,'k')
-clrbar = colorbar;
-title({'Non-pref eye. Non-pref stim'}, 'Interpreter', 'none')
-xlabel('time (ms)')
-clrbar.Label.String = 'nA/mm^3';
-
-set(gcf, 'Position',[680 54 711 1044]);
+set(gcf, 'Position',[151 397 1694 701]);
 
 
 %% SAVE figs

@@ -3,7 +3,7 @@
 %RFORI sessions contain the DE response and the BRFS contain the NDE
 %response under monocular conditions.
 %
-%   Version 1.0
+%   Version 1.1
 %   Brock Carlson -- created 9/16/19
 %   
 %   Current plotting goal: plot rfori for each orientation presented in
@@ -23,7 +23,7 @@ pre = 50;
 post = 250;
 TM = -pre:1:post;
 nameSaveType = 'LFPandCSDof';
-figtype = 'averageSessionEyeandOri';
+figtype = 'AlignedSessionEyeandOri';
 
 
 
@@ -286,55 +286,45 @@ end
 
 
 
-%% Baseline corect
-% bl AVG
-fields.AVG = fieldnames(AVG);
-for blavg=1:numel(fields.AVG)
-    bl  = mean(AVG.(fields.AVG{blavg})(:,TM<0),2);
-    BLavg.(fields.AVG{blavg})  = AVG.(fields.AVG{blavg}) - bl;
-end
-
-if contains(filename{a},'brfs')
-    firstfields.AVG_BRFS = fieldnames(AVG_BRFS);
-    for ffbl = 1:numel(firstfields.AVG_BRFS)
-        subfields.AVG_BRFS = fieldnames(AVG_BRFS.(firstfields.AVG_BRFS{ffbl}));
-        for blavg=1:numel(subfields.AVG_BRFS)
-            bl  = mean(AVG_BRFS.(firstfields.AVG_BRFS{ffbl}).(subfields.AVG_BRFS{blavg})(:,TM<0),2);
-            BLavg_BRFS.(firstfields.AVG_BRFS{ffbl}).(subfields.AVG_BRFS{blavg})  = AVG_BRFS.(firstfields.AVG_BRFS{ffbl}).(subfields.AVG_BRFS{blavg}) - bl;
-        end
-    end
-end
-
 %% Align Across Days -- sink on ch 25
 
 
 % cut the contacts' index based on the cortex limits (rftop and rfbtm)
 
+
+
+
+
+
+%%% PROBLEM WITH BRFS HERE
+%
+% ---- all monoc PS and NPS come out the same
+%%%%%%%%%
     if contains(filename{a},'brfs')
-        firstfields.TRIG_BRFS = fieldnames(TRIG_BRFS);
-        for ffav = 1:numel(firstfields.TRIG_BRFS)
-            subfields.TRIG_BRFS = fieldnames(TRIG_BRFS.(firstfields.TRIG_BRFS{ffav}));
-            for avtr=1:numel(subfields.TRIG_BRFS)
-                cutmatrix.(firstfields.TRIG_BRFS{ffav}).(fields.AVG{avtr})  = AVG.(fields.AVG{avtr})(PARAMS.rftop:PARAMS.rfbtm,:);
-                ALIGNED(a).(firstfields.TRIG_BRFS{ffav}).(fields.AVG{avtr}) = nan(50,size(TM,2));
+        firstfields.AVG_BRFS = fieldnames(AVG_BRFS);
+        for ffal = 1:numel(firstfields.AVG_BRFS)
+            subfields.AVG_BRFS = fieldnames(AVG_BRFS.(firstfields.AVG_BRFS{ffal}));
+            for sfal=1:numel(subfields.AVG_BRFS)
+                cutmatrix.(firstfields.AVG_BRFS{ffal}).(fields.AVG_BRFS{sfal})  = AVG_BRFS.(fields.AVG_BRFS{sfal})(PARAMS.rftop:PARAMS.rfbtm,:);
+                ALIGNED(a).(firstfields.AVG_BRFS{ffal}).(fields.AVG_BRFS{sfal}) = nan(50,size(TM,2));
                 % creat row assignments for the ALIGNED matrix
                 clear x y z
                 x = PARAMS.EvalSink-PARAMS.rftop+1; % the sink's row# in cutmatrix
                 y = 25-x+1; %rftop's location in ALIGNED
-                z = y+size(cutmatrix.(firstfields.TRIG_BRFS{ffav}).(fields.AVG{avtr}),1)-1; %rfbtm's locaiton in ALIGNED.    
-                ALIGNED(a).(firstfields.TRIG_BRFS{ffav}).(fields.AVG{avtr})(y:z,:) = cutmatrix.(firstfields.TRIG_BRFS{ffav}).(fields.AVG{avtr}) ;                      
+                z = y+size(cutmatrix.(firstfields.AVG_BRFS{ffal}).(fields.AVG{sfal}),1)-1; %rfbtm's locaiton in ALIGNED.    
+                ALIGNED(a).(firstfields.AVG_BRFS{ffal}).(fields.AVG{sfal})(y:z,:) = cutmatrix.(firstfields.AVG_BRFS{ffal}).(fields.AVG{sfal}) ;                      
             end
         end
     elseif contains(filename{a},'rfori')
         fields.AVG = fieldnames(AVG);
-        for avtr=1:numel(fields.AVG)
-            cutmatrix.rfori.(fields.AVG{avtr})  = AVG.(fields.AVG{avtr})(PARAMS.rftop:PARAMS.rfbtm,:);
-            ALIGNED(a).rfori.(fields.AVG{avtr}) = nan(50,size(TM,2));
+        for ffalrf=1:numel(fields.AVG)
+            cutmatrix.rfori.(fields.AVG{ffalrf})  = AVG.(fields.AVG{ffalrf})(PARAMS.rftop:PARAMS.rfbtm,:);
+            ALIGNED(a).rfori.(fields.AVG{ffalrf}) = nan(50,size(TM,2));
             % creat row assignments for the ALIGNED matrix
             x = PARAMS.EvalSink-PARAMS.rftop+1; % the sink's row# in cutmatrix
             y = 25-x+1; %rftop's location in ALIGNED
-            z = y+size(cutmatrix.rfori.(fields.AVG{avtr}),1)-1; %rfbtm's locaiton in ALIGNED.    
-            ALIGNED(a).rfori.(fields.AVG{avtr})(y:z,:) = cutmatrix.rfori.(fields.AVG{avtr}) ;
+            z = y+size(cutmatrix.rfori.(fields.AVG{ffalrf}),1)-1; %rfbtm's locaiton in ALIGNED.    
+            ALIGNED(a).rfori.(fields.AVG{ffalrf})(y:z,:) = cutmatrix.rfori.(fields.AVG{ffalrf}) ;
         end
     end
 
@@ -392,9 +382,9 @@ bl.PExNPS  = mean(AlAvg.PExNPS(:,TM<0),2);
 bl.NPExPS  = mean(AlAvg.NPExPS(:,TM<0),2);
 bl.NPExNPS  = mean(AlAvg.NPExNPS(:,TM<0),2);
 AlBLavg.PExPS  = AlAvg.PExPS - bl.PExPS;
-AlBLavg.PExNPS  = AlAvg.PExPS - bl.PExNPS;
-AlBLavg.NPExPS  = AlAvg.PExPS - bl.NPExPS;
-AlBLavg.NPExNPS  = AlAvg.PExPS - bl.NPExNPS;
+AlBLavg.PExNPS  = AlAvg.PExNPS - bl.PExNPS;
+AlBLavg.NPExPS  = AlAvg.NPExPS - bl.NPExPS;
+AlBLavg.NPExNPS  = AlAvg.NPExNPS - bl.NPExNPS;
 
 %% Cut matrix for cortical depth
 AlCut.PExPS = AlBLavg.PExPS(14:31,:);
@@ -415,47 +405,80 @@ AlFilt.NPExNPS = filterCSD(AlCut.NPExNPS);
 
 
 %% Plot
-corticaldepth = -0.5:.1:1.8;
-corticaldepth = fliplr(corticaldepth);
-
+corticaldepth = (1.1:-0.1:-0.5);
+climit = 1000;
 
 figure;
 set(gcf, 'Position', [680 338 711 760]);
-subplot(1,2,1)
+subplot(2,2,1)
 imagesc(TM,corticaldepth,AlFilt.PExPS); 
 colormap(flipud(jet));
-set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-% % climit = max(abs(get(gca,'CLim'))*.8);
-% % set(gca,'CLim',[-climit climit],'Box','off','TickDir','out')
+% % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
+% climit = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
 plot([800 800], ylim,'k')
 clrbar = colorbar;
-title({'all brfs monocular ori1 presented to NDE',filename{a}}, 'Interpreter', 'none')
+title({'Preferred eye. Preferred stim'}, 'Interpreter', 'none')
+ylabel('cortical depth')
 xlabel('time (ms)')
 clrbar.Label.String = 'nA/mm^3';
 
 
-subplot(1,2,2)
-imagesc(TM,chans,BLavg_BRFS.allmonocNPS.ns2fCSD); 
+set(gcf, 'Position', [680 338 711 760]);
+subplot(2,2,2)
+imagesc(TM,corticaldepth,AlFilt.PExNPS); 
 colormap(flipud(jet));
-set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-% % climit = max(abs(get(gca,'CLim'))*.8);
-% % set(gca,'CLim',[-climit climit],'Box','off','TickDir','out')
+% % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
+% climit = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
 plot([800 800], ylim,'k')
 clrbar = colorbar;
-title({'all brfs monocular ori2 presented to NDE',filename{a}}, 'Interpreter', 'none')
+title({'Preferred eye. Non-Pref stim'}, 'Interpreter', 'none')
 xlabel('time (ms)')
 clrbar.Label.String = 'nA/mm^3';
 
-set(gcf, 'Position', [75 501 517 569]);
+set(gcf, 'Position', [680 338 711 760]);
+subplot(2,2,3)
+imagesc(TM,corticaldepth,AlFilt.NPExPS); 
+colormap(flipud(jet));
+% % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
+% climit = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+plot([800 800], ylim,'k')
+clrbar = colorbar;
+title({'Non-pref eye. Preferred stim'}, 'Interpreter', 'none')
+ylabel('cortical depth')
+xlabel('time (ms)')
+clrbar.Label.String = 'nA/mm^3';
+
+
+set(gcf, 'Position', [680 338 711 760]);
+subplot(2,2,4)
+imagesc(TM,corticaldepth,AlFilt.NPExNPS); 
+colormap(flipud(jet));
+% % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
+% climit = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+plot([800 800], ylim,'k')
+clrbar = colorbar;
+title({'Non-pref eye. Non-pref stim'}, 'Interpreter', 'none')
+xlabel('time (ms)')
+clrbar.Label.String = 'nA/mm^3';
+
+set(gcf, 'Position',[680 54 711 1044]);
 
 
 %% SAVE figs
 cd(savefiledir)
-figsavename = strcat(figtype,'_',filename{a});
+figsavename = strcat(figtype);
 saveas(gcf, figsavename, 'fig')
 saveas(gcf, figsavename, 'pdf')
 saveas(gcf, figsavename, 'png')
@@ -465,43 +488,6 @@ saveas(gcf, figsavename, 'png')
 
 
 
-
-
-
-% % % % %% PLOT 1,2,3,4 "Session Data diagnostic"
-% % % % % LFP, CSDshadedLine, fCSD, aMUA, 
-% % % % figure
-% % % % %LFPline
-% % % % subplot(1,3,1)
-% % % % f_ShadedLinePlotbyDepth(BLavg_BRFS.diop_simult_NPS.ns2LFP,chans,TM,[],1)
-% % % % plot([0 0], ylim,'k')
-% % % % plot([800 800], ylim,'k')
-% % % % title({'LFP',filename{a}}, 'Interpreter', 'none')
-% % % % xlabel('time (ms)')
-% % % % ylabel('Contacts indexed down from surface')
-% % % % 
-% % % % % CSD line
-% % % % subplot(1,3,2)
-% % % % f_ShadedLinePlotbyDepth(BLavg_BRFS.diop_simult_NPS.ns2CSD,chans,TM,[],1)
-% % % % plot([0 0], ylim,'k')
-% % % % plot([800 800], ylim,'k')
-% % % % title({'CSD',filename{a}}, 'Interpreter', 'none')
-% % % % xlabel('time (ms)')
-% % % % 
-% % % % % fCSD
-% % % % subplot(1,3,3)
-% % % % imagesc(TM,chans,BLavg_BRFS.diop_simult_NPS.ns2fCSD); 
-% % % % colormap(flipud(jet));
-% % % % climit = max(abs(get(gca,'CLim'))*.8);
-% % % % set(gca,'CLim',[-climit climit],'Box','off','TickDir','out')
-% % % % hold on;
-% % % % plot([0 0], ylim,'k')
-% % % % plot([800 800], ylim,'k')
-% % % % clrbar = colorbar;
-% % % % title({'interpolate CSD',filename{a}}, 'Interpreter', 'none')
-% % % % xlabel('time (ms)')
-% % % % clrbar.Label.String = 'nA/mm^3';
-% % % % 
 
 
 
