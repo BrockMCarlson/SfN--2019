@@ -20,14 +20,15 @@ nameSaveType = 'LFPandCSDof';
 
 
 % Computer-specific editable variables 
+[ret, hostname] = system('hostname');
 if strcmp(getenv('USER'),'maierav')
     % @Alex -- fill in necessary information for your system here.
         % savefiledir = 'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\brfs conditions diagnostics';        
 elseif strcmp(getenv('USERNAME'),'Brock Carlson')
     % variables for end of script
     savefiledir = 'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\Is there an effect in monocular CSD';
-elseif ~ispc && strcmp(getenv('USERNAME'),'Brock')
-    savefiledir = 'INSERT PATH HERE';
+elseif ~ispc && contains(hostname,'Brocks-MacBook-Air')
+    savefiledir = '/Volumes/SfN_2019/SfN 2019 MacBook Figs/Is there an effect in monocular CSD -- MacBook';
 end
 
 
@@ -53,10 +54,10 @@ elseif strcmp(getenv('USERNAME'),'Brock Carlson')
     %session params
     sessionParamDir = 'G:/LaCie';
 
-elseif ~ispc && strcmp(getenv('USERNAME'),'Brock')
-    dataDirectory = strcat('/Volumes/Drobo/DATA/NEUROPHYS/carlsobm/',filename{a}(1:8));
+elseif ~ispc && contains(hostname,'Brocks-MacBook-Air')
+    dataDirectory = strcat('/Volumes/SfN_2019/all BRFS/',filename{a}(1:8));
     %session params
-    sessionParamDir = '/Volumes/Drobo/DATA/NEUROPHYS/carlsobm/';
+    sessionParamDir = '/Volumes/SfN_2019/';
 end
 
 
