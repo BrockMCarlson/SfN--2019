@@ -14,7 +14,7 @@ clear
 
 %% EDITABLE VARIABLES
 % filename = {'160510_E_rfori002'}';
-filename = {'160102_E_rfori002','160102_E_brfs001','160427_E_rfori002','160427_E_brfs001','160510_E_rfori002','160510_E_brfs001'}';
+filename = {'160102_E_rfori002','160102_E_rfori002','160427_E_rfori002','160427_E_rfori002','160510_E_rfori002','160510_E_rfori002'}';
 sinkAllocate = 'BMC_DfS';
 nameSaveType = 'LFPandCSDof';
 
@@ -30,7 +30,7 @@ elseif strcmp(getenv('USERNAME'),'Brock Carlson')
     savefiledir = 'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\SfN_fig1';
     sessionParamDir = 'G:/LaCie';
 elseif ~ispc && contains(hostname,'Brocks-MacBook-Air')
-    savefiledir = '/Volumes/SfN_2019/SfN 2019 MacBook Figs/SfN_fig1 -- MacBook';
+    savefiledir = '/Volumes/SfN_2019/SfN 2019 MacBook Figs/Is there an effect in monocular CSD -- MacBook';
     sessionParamDir = '/Volumes/SfN_2019/';
 end
 

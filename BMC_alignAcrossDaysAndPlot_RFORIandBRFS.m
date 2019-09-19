@@ -3,13 +3,15 @@
 %RFORI sessions contain the DE response and the BRFS contain the NDE
 %response under monocular conditions.
 %
-%   Version 1.1
+%   Version 1.2
 %   Brock Carlson -- created 9/16/19
 %   
 %   Current plotting goal: plot rfori for each orientation presented in
 %   brfs and the two orientations of brfs under monocular conditions.
 %
 %   DOES NOT TRIGGER TO PHOTO DIODE
+%   
+%   v 1.2 update -- official SfN fig 1 draft
 
 
 
@@ -22,48 +24,45 @@ sinkAllocate = 'BMC_DfS';
 pre = 50;
 post = 250;
 TM = -pre:1:post;
-nameSaveType = 'LFPandCSDof';
-figtype = 'AlignedSessionEyeandOri';
+nameLoadType = 'LFPandCSDof';
+figtype = 'SfN_fig1';
 
 
 
 % Computer-specific editable variables 
 if strcmp(getenv('USER'),'maierav')
     % @Alex -- fill in necessary information for your system here.
-        % savefiledir = 'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\brfs conditions diagnostics';        
+        % savefiledir = 'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\brfs conditions diagnostics'; 
+         sessionParamDir = 'G:\LaCie';
 elseif strcmp(getenv('USERNAME'),'Brock Carlson')
     % variables for end of script
-    savefiledir = 'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\Is there an effect in monocular CSD';
-elseif ~ispc && strcmp(getenv('USERNAME'),'Brock')
-    savefiledir = 'INSERT PATH HERE';
+    loadfiledir =  'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\SfN_fig1';
+    sessionParamDir = 'G:/LaCie';
+elseif  ~ispc && contains(hostname,'Brocks-MacBook-Air')
+    loadfiledir = '/Volumes/SfN_2019/SfN 2019 MacBook Figs/SfN_fig1 -- MacBook';
+    sessionParamDir = '/Volumes/SfN_2019/';
 end
 
 
 
+
 for a = 1:size(filename,1)
-    clearvars -except a filename sinkAllocate pre post TM savefiledir nameSaveType figtype ALIGNED
+    clearvars -except a filename sinkAllocate pre post TM loadfiledir nameLoadType figtype ALIGNED sessionParamDir
     
     disp(filename{a})
     
 
+
 %% Computer-specific directories 
 if strcmp(getenv('USER'),'maierav')
     % @Alex -- fill in necessary information for your system here.
-        % %     addpath(genpath('/Users/alex 1/Desktop/LAB/Brock'));
-        % %     drname        = {'/Users/alex 1/Desktop/LAB/Brock/Data'};
-        % load session params
-    %session params
-    sessionParamDir = 'G:/LaCie';
+        addpath(genpath('/Users/alex 1/Desktop/LAB/Brock'));
+    dataDirectory = strcat('/Users/alex 1/Desktop/LAB/Brock',filesep,filename{a}(1:8));    
 elseif strcmp(getenv('USERNAME'),'Brock Carlson')
     addpath(genpath('G:\LaCie\all BRFS'));
-    dataDirectory = strcat('G:\LaCie\all BRFS\',filename{a}(1:8));
-    %session params
-    sessionParamDir = 'G:/LaCie';
-
-elseif ~ispc && strcmp(getenv('USERNAME'),'Brock')
-    dataDirectory = strcat('/Volumes/Drobo/DATA/NEUROPHYS/carlsobm/',filename{a}(1:8));
-    %session params
-    sessionParamDir = '/Volumes/Drobo/DATA/NEUROPHYS/carlsobm/';
+    dataDirectory = strcat('G:\LaCie\all BRFS\',filename{a}(1:8));    
+elseif ~ispc && contains(hostname,'Brocks-MacBook-Air')
+    dataDirectory = strcat('/Volumes/SfN_2019/all BRFS/',filename{a}(1:8));   
 end
 
 
@@ -90,13 +89,11 @@ if contains(filename{a},'160427_E_rfori002')
    PARAMS.NPS = 35;
 end
 
-%Set Channel vector based on the number of electrode contacts
-chans = 1:PARAMS.el;
 
 %% LOAD FILTERED CONTINUOUS DATA
 % The saved .mat variables should contain both LFP and CSD
-cd(savefiledir)
-loadname = strcat(nameSaveType,filename{a},'.mat');
+cd(loadfiledir)
+loadname = strcat(nameLoadType,filename{a},'.mat');
 load(loadname)
 
 
@@ -332,7 +329,6 @@ end
 
 
 end
-clearvars -except  filename sinkAllocate pre post TM savefiledir nameSaveType figtype ALIGNED
 
 
 %% Average across alignment
@@ -406,15 +402,14 @@ AlFilt.NPExNPS = filterCSD(AlCut.NPExNPS);
 
 %% Plot
 corticaldepth = (1.1:-0.1:-0.5);
-climit = 1000;
+climit = 400;
 
 figure;
 set(gcf, 'Position', [680 338 711 760]);
 subplot(2,2,1)
 imagesc(TM,corticaldepth,AlFilt.PExPS); 
 colormap(flipud(jet));
-% % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-% climit = max(abs(get(gca,'CLim'))*.8);
+% % % climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
@@ -430,8 +425,7 @@ set(gcf, 'Position', [680 338 711 760]);
 subplot(2,2,2)
 imagesc(TM,corticaldepth,AlFilt.PExNPS); 
 colormap(flipud(jet));
-% % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-% climit = max(abs(get(gca,'CLim'))*.8);
+% % % climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
@@ -445,8 +439,7 @@ set(gcf, 'Position', [680 338 711 760]);
 subplot(2,2,3)
 imagesc(TM,corticaldepth,AlFilt.NPExPS); 
 colormap(flipud(jet));
-% % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-% climit = max(abs(get(gca,'CLim'))*.8);
+% % % climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
@@ -462,8 +455,7 @@ set(gcf, 'Position', [680 338 711 760]);
 subplot(2,2,4)
 imagesc(TM,corticaldepth,AlFilt.NPExNPS); 
 colormap(flipud(jet));
-% % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-% climit = max(abs(get(gca,'CLim'))*.8);
+% % % climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
@@ -477,7 +469,9 @@ set(gcf, 'Position',[680 54 711 1044]);
 
 
 %% SAVE figs
-cd(savefiledir)
+% Here I will save figures to the same directory that I loaded in the data
+% sets from
+cd(loadfiledir)
 figsavename = strcat(figtype);
 saveas(gcf, figsavename, 'fig')
 saveas(gcf, figsavename, 'pdf')

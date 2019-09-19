@@ -11,6 +11,8 @@
 %   elements. Hopefully this will clean it up.
 %
 %   DOES NOT TRIGGER TO PHOTO DIODE
+%
+%   Version 1.2 - SfN fig2 draft
 
 
 
@@ -23,26 +25,31 @@ sinkAllocate = 'BMC_DfS';
 pre = 850;
 post = 800;
 TM = -pre:1:post;
-nameSaveType = 'LFPandCSDof';
-figtype = 'AlignedSessionBRFSeffect';
+nameLoadType = 'LFPandCSDof';
+figtype = 'SfN_fig2';
 
 
 
 % Computer-specific editable variables 
 if strcmp(getenv('USER'),'maierav')
     % @Alex -- fill in necessary information for your system here.
-        % savefiledir = 'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\brfs conditions diagnostics';        
+        % loadfiledir = 'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\brfs conditions diagnostics'; 
+         sessionParamDir = 'G:\LaCie';
 elseif strcmp(getenv('USERNAME'),'Brock Carlson')
     % variables for end of script
-    savefiledir = 'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\Is there an effect in monocular CSD';
-elseif ~ispc && strcmp(getenv('USERNAME'),'Brock')
-    savefiledir = 'INSERT PATH HERE';
+    loadfiledir =  'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\SfN_fig2';
+    sessionParamDir = 'G:/LaCie';
+elseif  ~ispc && contains(hostname,'Brocks-MacBook-Air')
+    loadfiledir = '/Volumes/SfN_2019/SfN 2019 MacBook Figs/SfN_fig2 -- MacBook';
+    sessionParamDir = '/Volumes/SfN_2019/';
 end
 
 
 
+
+
 for a = 1:size(filename,1)
-    clearvars -except a filename sinkAllocate pre post TM savefiledir nameSaveType figtype ALIGNED
+    clearvars -except a filename sinkAllocate pre post TM loadfiledir nameLoadType figtype ALIGNED sessionParamDir
     
     disp(filename{a})
     
@@ -50,21 +57,13 @@ for a = 1:size(filename,1)
 %% Computer-specific directories 
 if strcmp(getenv('USER'),'maierav')
     % @Alex -- fill in necessary information for your system here.
-        % %     addpath(genpath('/Users/alex 1/Desktop/LAB/Brock'));
-        % %     drname        = {'/Users/alex 1/Desktop/LAB/Brock/Data'};
-        % load session params
-    %session params
-    sessionParamDir = 'G:/LaCie';
+        addpath(genpath('/Users/alex 1/Desktop/LAB/Brock'));
+    dataDirectory = strcat('/Users/alex 1/Desktop/LAB/Brock',filesep,filename{a}(1:8));    
 elseif strcmp(getenv('USERNAME'),'Brock Carlson')
     addpath(genpath('G:\LaCie\all BRFS'));
-    dataDirectory = strcat('G:\LaCie\all BRFS\',filename{a}(1:8));
-    %session params
-    sessionParamDir = 'G:/LaCie';
-
-elseif ~ispc && strcmp(getenv('USERNAME'),'Brock')
-    dataDirectory = strcat('/Volumes/Drobo/DATA/NEUROPHYS/carlsobm/',filename{a}(1:8));
-    %session params
-    sessionParamDir = '/Volumes/Drobo/DATA/NEUROPHYS/carlsobm/';
+    dataDirectory = strcat('G:\LaCie\all BRFS\',filename{a}(1:8));    
+elseif ~ispc && contains(hostname,'Brocks-MacBook-Air')
+    dataDirectory = strcat('/Volumes/SfN_2019/all BRFS/',filename{a}(1:8));   
 end
 
 
@@ -96,8 +95,8 @@ chans = 1:PARAMS.el;
 
 %% LOAD FILTERED CONTINUOUS DATA
 % The saved .mat variables should contain both LFP and CSD
-cd(savefiledir)
-loadname = strcat(nameSaveType,filename{a},'.mat');
+cd(loadfiledir)
+loadname = strcat(nameLoadType,filename{a},'.mat');
 load(loadname)
 
 
@@ -248,7 +247,7 @@ end
 
 % cut the contacts' index based on the cortex limits (rftop and rfbtm)
 
-%%%%% I THINK I DID SOMETHING WRONG HERE!!!!!!!!
+
         firstfields.AVG_BRFS = fieldnames(AVG_BRFS);
         for ffal = 1:numel(firstfields.AVG_BRFS)
             subfields.AVG_BRFS = fieldnames(AVG_BRFS.(firstfields.AVG_BRFS{ffal}));
@@ -264,7 +263,7 @@ end
             end
         end
 
-%%%%%%% CHECK ABOVE TO SEE WHAT I DID WRONG??
+
 
 
 end
@@ -364,7 +363,7 @@ set(gcf, 'Position',[151 397 1694 701]);
 
 
 %% SAVE figs
-cd(savefiledir)
+cd(loadfiledir)
 figsavename = strcat(figtype);
 saveas(gcf, figsavename, 'fig')
 saveas(gcf, figsavename, 'pdf')
