@@ -38,7 +38,7 @@ end
 %% LOOP THROUGH ALL FILES
 
 for a = 1:size(filename,1)
-    clearvars -except a filename sinkAllocate pre post TM savefiledir nameSaveType sessionParamDir
+    clearvars -except a filename sinkAllocate pre post TM savefiledir nameSaveType sessionParamDir hostname
     
     disp(filename{a})
     
