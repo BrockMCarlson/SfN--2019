@@ -188,6 +188,9 @@ if contains(filename{a},'brfs')
             for singleCh = 1:contactNum 
                 for singleTrigger = 1: numTriggers.STIM_BRFS.(fields.STIM_BRFS{ffstim})
                     timeOfTrigger = STIM_BRFS.(fields.STIM_BRFS{ffstim}).start_noSoaDown(singleTrigger);
+                    if ~ispc
+                        timeOfTrigger = uint32(timeOfTrigger);
+                    end
                     windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
                     % output is (Ch x time x triggerNumber)
                     TRIG_BRFS.(fields.STIM_BRFS{ffstim}).ns2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
@@ -205,6 +208,9 @@ if contains(filename{a},'brfs')
             for singleCh = 1:contactNum 
                 for singleTrigger = 1: numTriggers.STIM_BRFS.(fields.STIM_BRFS{ffstim})
                     timeOfTrigger = STIM_BRFS.(fields.STIM_BRFS{ffstim}).start2Down(singleTrigger);
+                    if ~ispc
+                        timeOfTrigger = uint32(timeOfTrigger);
+                    end
                     windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
                     % output is (Ch x time x triggerNumber)
                     TRIG_BRFS.(fields.STIM_BRFS{ffstim}).ns2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
