@@ -3,7 +3,7 @@
 %RFORI sessions contain the DE response and the BRFS contain the NDE
 %response under monocular conditions.
 %
-%   Version 1.2
+%   Version 1.3
 %   Brock Carlson -- created 9/16/19
 %   
 %   Current plotting goal: plot rfori for each orientation presented in
@@ -31,6 +31,7 @@ figtype = 'SfN_fig1';
 
 
 % Computer-specific editable variables 
+[ret, hostname] = system('hostname');
 if strcmp(getenv('USER'),'maierav')
     % @Alex -- fill in necessary information for your system here.
         % savefiledir = 'G:\LaCie\SfN 2019--figsAndMatVars\SfN 2019 figs\brfs conditions diagnostics'; 
@@ -55,6 +56,7 @@ for a = 1:size(filename,1)
 
 
 %% Computer-specific directories 
+[ret, hostname] = system('hostname');
 if strcmp(getenv('USER'),'maierav')
     % @Alex -- fill in necessary information for your system here.
         addpath(genpath('/Users/alex 1/Desktop/LAB/Brock'));
