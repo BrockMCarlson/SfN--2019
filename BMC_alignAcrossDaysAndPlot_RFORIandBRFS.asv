@@ -188,6 +188,9 @@ if contains(filename{a},'brfs')
             for singleCh = 1:contactNum 
                 for singleTrigger = 1: numTriggers.STIM_BRFS.(fields.STIM_BRFS{ffstim})
                     timeOfTrigger = STIM_BRFS.(fields.STIM_BRFS{ffstim}).start_noSoaDown(singleTrigger);
+                    if ~ispc
+                        timeOfTrigger = uint32(timeOfTrigger);
+                    end
                     windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
                     % output is (Ch x time x triggerNumber)
                     TRIG_BRFS.(fields.STIM_BRFS{ffstim}).ns2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
@@ -205,6 +208,9 @@ if contains(filename{a},'brfs')
             for singleCh = 1:contactNum 
                 for singleTrigger = 1: numTriggers.STIM_BRFS.(fields.STIM_BRFS{ffstim})
                     timeOfTrigger = STIM_BRFS.(fields.STIM_BRFS{ffstim}).start2Down(singleTrigger);
+                    if ~ispc
+                        timeOfTrigger = uint32(timeOfTrigger);
+                    end
                     windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
                     % output is (Ch x time x triggerNumber)
                     TRIG_BRFS.(fields.STIM_BRFS{ffstim}).ns2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
@@ -370,28 +376,22 @@ AlAvg.NPExNPS = nanmean(NPExNPS,3);
 %       bl = number of pts in condition b
 %       al = number off pts in condition a
 %
+clear i acond bcond Tmap
+acondList = {PExPS,NPExPS,PExPS,PExNPS};
+bcondList = {PExNPS,NPExNPS,NPExPS,NPExNPS};
 
-acond = PExPS;
-bcond = PExNPS;
-cmatrx = cat(3,acond,bcond);
-s = std(cmatrx,0,3);
-amn = mean(acond,3);
-al  = size(acond,3);
-bmn = mean(bcond,3);
-bl  = size(bcond,3);
-Tmap = (bmn-amn)./(s*sqrt((1/al)+(1/bl)));
+for i = 1:4
+acond = acondList{i};
+bcond = bcondList{i};
+    cmatrx = cat(3,acond,bcond);
+    s = nanstd(cmatrx,0,3);
+    amn = nanmean(acond,3);
+    al  = size(acond,3);
+    bmn = nanmean(bcond,3);
+    bl  = size(bcond,3);
+    Tmap(:,:,i) = (bmn-amn)./(s*sqrt((1/al)+(1/bl)));
 
-%%% PROBLEM HERE. WHY DO I ONLY HAVE DATA ON CHANNELS 19-28, but I average
-%%% data on ch 14-31?
-%
-%
-%
-%
-%
-%
-%
-%
-%
+end
 
 
 
@@ -448,7 +448,7 @@ corticaldepth = (1.1:-0.1:-0.5);
 climitData = 400;
 
 figure;
-subplot(3,3,1)
+subplot(4,4,1)
 imagesc(TM,corticaldepth,AlFilt.PExPS); 
 colormap(flipud(jet));
 % % % climit = max(abs(get(gca,'CLim'))*.8);
@@ -462,7 +462,7 @@ xlabel('time (ms)')
 datclrbar.Label.String = 'nA/mm^3';
 
 
-subplot(3,3,2)
+subplot(4,4,2)
 imagesc(TM,corticaldepth,AlFilt.PExNPS); 
 colormap(flipud(jet));
 % % % climit = max(abs(get(gca,'CLim'))*.8);
@@ -474,7 +474,7 @@ title({'Preferred eye. Non-Pref stim'}, 'Interpreter', 'none')
 xlabel('time (ms)')
 datclrbar.Label.String = 'nA/mm^3';
 
-subplot(3,3,4)
+subplot(4,4,5)
 imagesc(TM,corticaldepth,AlFilt.NPExPS); 
 colormap(flipud(jet));
 % % % climit = max(abs(get(gca,'CLim'))*.8);
@@ -488,7 +488,7 @@ xlabel('time (ms)')
 datclrbar.Label.String = 'nA/mm^3';
 
 
-subplot(3,3,5)
+subplot(4,4,6)
 imagesc(TM,corticaldepth,AlFilt.NPExNPS); 
 colormap(flipud(jet));
 % % % climit = max(abs(get(gca,'CLim'))*.8);
@@ -510,10 +510,10 @@ set(gcf, 'Position',[680 54 711 1044]);
 
 climitSub = [200];
 
-subplot(3,3,3)
-imagesc(TM,corticaldepth,TmapCut); 
+subplot(4,4,3)
+imagesc(TM,corticaldepth,AlFilt.subOri_PE); 
 colormap(gca,'cool');
-climitSub = max(abs(get(gca,'CLim'))*.8);
+% % % climitSub = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climitSub climitSub],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
@@ -522,7 +522,7 @@ title({'Orientation comparison in PE','PS in PE - nullstim in PE'}, 'Interpreter
 xlabel('time (ms)')
 subclrbar.Label.String = 'nA/mm^3';
 
-subplot(3,3,6)
+subplot(4,4,7)
 imagesc(TM,corticaldepth,AlFilt.subOri_NPE); 
 colormap(gca,'cool');
 % % % climitSub = max(abs(get(gca,'CLim'))*.8);
@@ -534,7 +534,7 @@ title({'Orientation comparison in NPE','PS in NPE - nullstim in NPE'}, 'Interpre
 xlabel('time (ms)')
 subclrbar.Label.String = 'nA/mm^3';
 
-subplot(3,3,7)
+subplot(4,4,9)
 imagesc(TM,corticaldepth,AlFilt.subEye_PS); 
 colormap(gca,'cool');
 % % % climitSub = max(abs(get(gca,'CLim'))*.8);
@@ -546,7 +546,7 @@ title({'eye comparison in PS','PS in PE - PS in NPE'}, 'Interpreter', 'none')
 xlabel('time (ms)')
 subclrbar.Label.String = 'nA/mm^3';
 
-subplot(3,3,8)
+subplot(4,4,10)
 imagesc(TM,corticaldepth,AlFilt.subEye_NPS); 
 colormap(gca,'cool');
 % % % climitSub = max(abs(get(gca,'CLim'))*.8);
@@ -557,6 +557,62 @@ subclrbar = colorbar;
 title({'eye comparison in null stim','null stim in PE - null stim in NPE'}, 'Interpreter', 'none')
 xlabel('time (ms)')
 subclrbar.Label.String = 'nA/mm^3';
+
+% TMAPs
+% ori comparison in PE      == subOri_PE    -- rf ori sessions - tmap1
+% ori comparison in NPE     == subOri_NPE   -- brfs sessions - tmap2
+% eye comparison in PS      == subEye_PS    -- PS rfori - PS brfs - tmap3
+% eye comparison in null    == subEye_NPS   -- NPS rfori - NPS brfs - tmap4
+
+
+subplot(4,4,4)
+imagesc(TM,corticaldepth,Tmap); 
+colormap(gca,'cool');
+% % % climitTmap = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climitTmap climitTmap],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+subclrbar = colorbar;
+title({'Orientation comparison in PE','PS in PE - nullstim in PE'}, 'Interpreter', 'none')
+xlabel('time (ms)')
+subclrbar.Label.String = 'nA/mm^3';
+
+subplot(4,4,8)
+imagesc(TM,corticaldepth,AlFilt.subOri_NPE); 
+colormap(gca,'cool');
+% % % climitTmap = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climitTmap climitTmap],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+subclrbar = colorbar;
+title({'Orientation comparison in NPE','PS in NPE - nullstim in NPE'}, 'Interpreter', 'none')
+xlabel('time (ms)')
+subclrbar.Label.String = 'nA/mm^3';
+
+subplot(4,4,13)
+imagesc(TM,corticaldepth,AlFilt.subEye_PS); 
+colormap(gca,'cool');
+% % % climitTmap = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climitTmap climitTmap],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+subclrbar = colorbar;
+title({'eye comparison in PS','PS in PE - PS in NPE'}, 'Interpreter', 'none')
+xlabel('time (ms)')
+subclrbar.Label.String = 'nA/mm^3';
+
+subplot(4,4,14)
+imagesc(TM,corticaldepth,AlFilt.subEye_NPS); 
+colormap(gca,'cool');
+% % % climitTmap = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climitTmap climitTmap],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+subclrbar = colorbar;
+title({'eye comparison in null stim','null stim in PE - null stim in NPE'}, 'Interpreter', 'none')
+xlabel('time (ms)')
+subclrbar.Label.String = 'nA/mm^3';
+
 
 
 

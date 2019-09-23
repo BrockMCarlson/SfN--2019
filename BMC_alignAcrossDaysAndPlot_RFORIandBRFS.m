@@ -377,19 +377,19 @@ AlAvg.NPExNPS = nanmean(NPExNPS,3);
 %       al = number off pts in condition a
 %
 clear i acond bcond Tmap
-acond = {PExPS,NPExPS,PExPS,PExNPS};
-bcond
+acondList = {PExNPS,NPExNPS,NPExPS,NPExNPS};
+bcondList = {PExPS,NPExPS,PExPS,PExNPS};
 
 for i = 1:4
-acond = PExPS;
-bcond = PExNPS;
+acond = acondList{i};
+bcond = bcondList{i};
     cmatrx = cat(3,acond,bcond);
     s = nanstd(cmatrx,0,3);
     amn = nanmean(acond,3);
     al  = size(acond,3);
     bmn = nanmean(bcond,3);
     bl  = size(bcond,3);
-    Tmap(i) = (bmn-amn)./(s*sqrt((1/al)+(1/bl)));
+    Tmap(:,:,i) = (bmn-amn)./(s*sqrt((1/al)+(1/bl)));
 
 end
 
@@ -427,7 +427,7 @@ end
 
 
 
-TmapCut = Tmap(14:31,:);
+TmapCut = Tmap(14:31,:,:);
 
 
 %% Filter and interpolate CSD across averaged alignment
@@ -448,7 +448,7 @@ corticaldepth = (1.1:-0.1:-0.5);
 climitData = 400;
 
 figure;
-subplot(3,3,1)
+subplot(4,4,1)
 imagesc(TM,corticaldepth,AlFilt.PExPS); 
 colormap(flipud(jet));
 % % % climit = max(abs(get(gca,'CLim'))*.8);
@@ -462,7 +462,7 @@ xlabel('time (ms)')
 datclrbar.Label.String = 'nA/mm^3';
 
 
-subplot(3,3,2)
+subplot(4,4,2)
 imagesc(TM,corticaldepth,AlFilt.PExNPS); 
 colormap(flipud(jet));
 % % % climit = max(abs(get(gca,'CLim'))*.8);
@@ -474,7 +474,7 @@ title({'Preferred eye. Non-Pref stim'}, 'Interpreter', 'none')
 xlabel('time (ms)')
 datclrbar.Label.String = 'nA/mm^3';
 
-subplot(3,3,4)
+subplot(4,4,5)
 imagesc(TM,corticaldepth,AlFilt.NPExPS); 
 colormap(flipud(jet));
 % % % climit = max(abs(get(gca,'CLim'))*.8);
@@ -488,7 +488,7 @@ xlabel('time (ms)')
 datclrbar.Label.String = 'nA/mm^3';
 
 
-subplot(3,3,5)
+subplot(4,4,6)
 imagesc(TM,corticaldepth,AlFilt.NPExNPS); 
 colormap(flipud(jet));
 % % % climit = max(abs(get(gca,'CLim'))*.8);
@@ -510,10 +510,10 @@ set(gcf, 'Position',[680 54 711 1044]);
 
 climitSub = [200];
 
-subplot(3,3,3)
-imagesc(TM,corticaldepth,TmapCut); 
+subplot(4,4,3)
+imagesc(TM,corticaldepth,AlFilt.subOri_PE); 
 colormap(gca,'cool');
-climitSub = max(abs(get(gca,'CLim'))*.8);
+% % % climitSub = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climitSub climitSub],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
@@ -522,7 +522,7 @@ title({'Orientation comparison in PE','PS in PE - nullstim in PE'}, 'Interpreter
 xlabel('time (ms)')
 subclrbar.Label.String = 'nA/mm^3';
 
-subplot(3,3,6)
+subplot(4,4,7)
 imagesc(TM,corticaldepth,AlFilt.subOri_NPE); 
 colormap(gca,'cool');
 % % % climitSub = max(abs(get(gca,'CLim'))*.8);
@@ -534,7 +534,7 @@ title({'Orientation comparison in NPE','PS in NPE - nullstim in NPE'}, 'Interpre
 xlabel('time (ms)')
 subclrbar.Label.String = 'nA/mm^3';
 
-subplot(3,3,7)
+subplot(4,4,9)
 imagesc(TM,corticaldepth,AlFilt.subEye_PS); 
 colormap(gca,'cool');
 % % % climitSub = max(abs(get(gca,'CLim'))*.8);
@@ -546,7 +546,7 @@ title({'eye comparison in PS','PS in PE - PS in NPE'}, 'Interpreter', 'none')
 xlabel('time (ms)')
 subclrbar.Label.String = 'nA/mm^3';
 
-subplot(3,3,8)
+subplot(4,4,10)
 imagesc(TM,corticaldepth,AlFilt.subEye_NPS); 
 colormap(gca,'cool');
 % % % climitSub = max(abs(get(gca,'CLim'))*.8);
@@ -557,6 +557,63 @@ subclrbar = colorbar;
 title({'eye comparison in null stim','null stim in PE - null stim in NPE'}, 'Interpreter', 'none')
 xlabel('time (ms)')
 subclrbar.Label.String = 'nA/mm^3';
+
+% TMAPs
+% % acondList = {PExNPS,NPExNPS,NPExPS,NPExNPS};
+% % bcondList = {PExPS,NPExPS,PExPS,PExNPS};
+% 1 -- PExPS-PExNPS
+% 2 -- NPExPS-NPExNPS
+% 3 -- PExPS-NPExPS
+% 4 -- PExNPS-NPExNPS
+
+subplot(4,4,4)
+imagesc(TM,corticaldepth,TmapCut(:,:,1)); 
+colormap(gca,'bone');
+climitTmap = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climitTmap climitTmap],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+subclrbar = colorbar;
+title({'PExPS-PExNPS'}, 'Interpreter', 'none')
+xlabel('time (ms)')
+subclrbar.Label.String = 'Tscore';
+
+subplot(4,4,8)
+imagesc(TM,corticaldepth,TmapCut(:,:,2)); 
+colormap(gca,'bone');
+climitTmap = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climitTmap climitTmap],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+subclrbar = colorbar;
+title({'NPExPS-NPExNPS'}, 'Interpreter', 'none')
+xlabel('time (ms)')
+subclrbar.Label.String = 'Tscore';
+
+subplot(4,4,13)
+imagesc(TM,corticaldepth,TmapCut(:,:,3)); 
+colormap(gca,'bone');
+climitTmap = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climitTmap climitTmap],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+subclrbar = colorbar;
+title({'PExPS-NPExPS'}, 'Interpreter', 'none')
+xlabel('time (ms)')
+subclrbar.Label.String = 'Tscore';
+
+subplot(4,4,14)
+imagesc(TM,corticaldepth,TmapCut(:,:,4)); 
+colormap(gca,'bone');
+climitTmap = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climitTmap climitTmap],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+subclrbar = colorbar;
+title({'PExNPS-NPExNPS'}, 'Interpreter', 'none')
+xlabel('time (ms)')
+subclrbar.Label.String = 'Tscore';
+
 
 
 
