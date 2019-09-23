@@ -188,6 +188,9 @@ if contains(filename{a},'brfs')
             for singleCh = 1:contactNum 
                 for singleTrigger = 1: numTriggers.STIM_BRFS.(fields.STIM_BRFS{ffstim})
                     timeOfTrigger = STIM_BRFS.(fields.STIM_BRFS{ffstim}).start_noSoaDown(singleTrigger);
+                    if ~ispc
+                        timeOfTrigger = uint32(timeOfTrigger);
+                    end
                     windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
                     % output is (Ch x time x triggerNumber)
                     TRIG_BRFS.(fields.STIM_BRFS{ffstim}).ns2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
@@ -205,6 +208,9 @@ if contains(filename{a},'brfs')
             for singleCh = 1:contactNum 
                 for singleTrigger = 1: numTriggers.STIM_BRFS.(fields.STIM_BRFS{ffstim})
                     timeOfTrigger = STIM_BRFS.(fields.STIM_BRFS{ffstim}).start2Down(singleTrigger);
+                    if ~ispc
+                        timeOfTrigger = uint32(timeOfTrigger);
+                    end
                     windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
                     % output is (Ch x time x triggerNumber)
                     TRIG_BRFS.(fields.STIM_BRFS{ffstim}).ns2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
@@ -370,28 +376,22 @@ AlAvg.NPExNPS = nanmean(NPExNPS,3);
 %       bl = number of pts in condition b
 %       al = number off pts in condition a
 %
+clear i acond bcond Tmap
+acond = {PExPS,NPExPS,PExPS,PExNPS};
+bcond
 
+for i = 1:4
 acond = PExPS;
 bcond = PExNPS;
-cmatrx = cat(3,acond,bcond);
-s = std(cmatrx,0,3);
-amn = mean(acond,3);
-al  = size(acond,3);
-bmn = mean(bcond,3);
-bl  = size(bcond,3);
-Tmap = (bmn-amn)./(s*sqrt((1/al)+(1/bl)));
+    cmatrx = cat(3,acond,bcond);
+    s = nanstd(cmatrx,0,3);
+    amn = nanmean(acond,3);
+    al  = size(acond,3);
+    bmn = nanmean(bcond,3);
+    bl  = size(bcond,3);
+    Tmap(i) = (bmn-amn)./(s*sqrt((1/al)+(1/bl)));
 
-%%% PROBLEM HERE. WHY DO I ONLY HAVE DATA ON CHANNELS 19-28, but I average
-%%% data on ch 14-31?
-%
-%
-%
-%
-%
-%
-%
-%
-%
+end
 
 
 
