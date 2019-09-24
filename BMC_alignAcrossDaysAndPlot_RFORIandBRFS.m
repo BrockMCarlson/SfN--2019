@@ -625,6 +625,7 @@ figsavename = strcat(figtype);
 saveas(gcf, figsavename, 'fig')
 saveas(gcf, figsavename, 'pdf')
 saveas(gcf, figsavename, 'png')
+saveas(gcf, figsavename, 'svg')
     
 
 

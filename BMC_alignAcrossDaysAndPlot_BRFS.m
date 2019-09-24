@@ -3,7 +3,7 @@
 %RFORI sessions contain the DE response and the BRFS contain the NDE
 %response under monocular conditions.
 %
-%   Version 1.0
+%   Version 1.3
 %   Brock Carlson -- created 9/17/19
 %   
 %   Current plotting goal: plot brfs PS after flash vs null. This code was
@@ -13,6 +13,8 @@
 %   DOES NOT TRIGGER TO PHOTO DIODE
 %
 %   Version 1.2 - SfN fig2 draft
+%   v 1.3 update -- add difference plots and stats calculations.
+
 
 
 
