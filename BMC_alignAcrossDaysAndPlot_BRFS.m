@@ -223,7 +223,7 @@ end
 
 
 
-%% AVERAGE AND BASELINE-CORRECT TRIGGERED DATA 
+%% AVERAGE TRIGGERED DATA 
 
 %% Average
 % Avgerage TRIG
@@ -299,28 +299,69 @@ nullFlash(:,:,2) = ALIGNED(2).dichop_800soa_brfsNPSflash.ns2CSD;
 nullFlash(:,:,3) = ALIGNED(3).dichop_800soa_brfsNPSflash.ns2CSD;
 AlAvg.nullFlash = nanmean(nullFlash,3);
 
+%% T-SCORE FROM NATURE NEURO PAPER
+% From Alex's code
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% T-SCORES:
+%
+%  T = (amn-bmn)/(s(sqrt((1/al)+(1/bl))))
+%
+% where amn = mean value for condition a
+%       bmn = mean value for condition b
+%       s = stddev for values across both conditions
+%       bl = number of pts in condition b
+%       al = number off pts in condition a
+%
+
+acond = AlAvg.nullFlash;
+bcond = AlAvg.PSflash;
+    cmatrx = cat(3,acond,bcond);
+    s = nanstd(cmatrx,0,3);
+    amn = nanmean(acond,3);
+    al  = size(acond,3);
+    bmn = nanmean(bcond,3);
+    bl  = size(bcond,3);
+    Tmap(:,:) = (bmn-amn)./(s*sqrt((1/al)+(1/bl)));
+
+
+%% Create subtraction matrices
+% 1. 1/2 wave rectify
+halfPS = AlAvg.PSflash;
+halfPS(halfPS > 0) = 0;
+halfNPS = AlAvg.nullFlash;
+halfNPS(halfNPS > 0) = 0;
+
+
+%2. subtract NPS flash from PS flash.
+subtraction = halfPS-halfNPS;
+
 %% Baseline average the alignment
-searchvector = (-50:1:0);
+searchvector = (-850:1:-800);
 [~,blidx] = ismember(searchvector,TM);
 
 
 clear bl
 bl.PSflash  = mean(AlAvg.PSflash(:,blidx),2);
 bl.nullFlash  = mean(AlAvg.nullFlash(:,blidx),2);
+bl.sub      = mean(subtraction(:,blidx),2);
 
 AlBLavg.PSflash  = AlAvg.PSflash - bl.PSflash;
 AlBLavg.nullFlash  = AlAvg.nullFlash - bl.nullFlash;
+AlBLavg.sub = subtraction - bl.sub;
 
 %% Cut matrix for cortical depth
 
 AlCut.PSflash = AlBLavg.PSflash(14:31,:);
 AlCut.nullFlash = AlBLavg.nullFlash(14:31,:);
+AlCut.sub       = AlBLavg.sub(14:31,:);
+
 
 %% Filter and interpolate CSD across averaged alignment
 % filter AVG struct
 
 AlFilt.PSflash = filterCSD(AlCut.PSflash);
 AlFilt.nullFlash = filterCSD(AlCut.nullFlash);
+AlFilt.sub = filterCSD(AlCut.sub);
 
 
 
@@ -329,14 +370,14 @@ AlFilt.nullFlash = filterCSD(AlCut.nullFlash);
 
 %% Plot
 corticaldepth = (1.1:-0.1:-0.5);
-% % climit = 1000;
+climit = 500;
 
 figure;
-subplot(1,2,1)
+subplot(1,3,1)
 imagesc(TM,corticaldepth,AlFilt.PSflash); 
 colormap(flipud(jet));
 % % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-climit = max(abs(get(gca,'CLim'))*.8);
+% % % climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
@@ -348,11 +389,11 @@ xlabel('time (ms)')
 clrbar.Label.String = 'nA/mm^3';
 
 
-subplot(1,2,2)
+subplot(1,3,2)
 imagesc(TM,corticaldepth,AlFilt.nullFlash); 
 colormap(flipud(jet));
 % % % set(gca,'CLim',[-climit{a} climit{a}],'Box','off','TickDir','out')
-climit = max(abs(get(gca,'CLim'))*.8);
+% % % climit = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climit climit],'YDir','normal','Box','off','TickDir','out')
 hold on;
 plot([0 0], ylim,'k')
@@ -363,8 +404,25 @@ xlabel('time (ms)')
 clrbar.Label.String = 'nA/mm^3';
 
 
-set(gcf, 'Position',[151 397 1694 701]);
 
+
+
+% Subtraction plots
+climitSub = 500;
+
+subplot(1,3,3)
+imagesc(TM,corticaldepth,AlFilt.sub); 
+colormap(gca,'cool');
+% % % climitSub = max(abs(get(gca,'CLim'))*.8);
+set(gca,'CLim',[-climitSub climitSub],'YDir','normal','Box','off','TickDir','out')
+hold on;
+plot([0 0], ylim,'k')
+subclrbar = colorbar;
+title({'PS at flash - NPS at flash'}, 'Interpreter', 'none')
+xlabel('time (ms)')
+subclrbar.Label.String = 'nA/mm^3';
+
+set(gcf, 'Position',[359 309 1125 625]);
 
 %% SAVE figs
 cd(loadfiledir)
@@ -372,6 +430,8 @@ figsavename = strcat(figtype);
 saveas(gcf, figsavename, 'fig')
 saveas(gcf, figsavename, 'pdf')
 saveas(gcf, figsavename, 'png')
+saveas(gcf, figsavename, 'svg')
+
     
 
 

@@ -188,9 +188,9 @@ if contains(filename{a},'brfs')
             for singleCh = 1:contactNum 
                 for singleTrigger = 1: numTriggers.STIM_BRFS.(fields.STIM_BRFS{ffstim})
                     timeOfTrigger = STIM_BRFS.(fields.STIM_BRFS{ffstim}).start_noSoaDown(singleTrigger);
-                    if ~ispc
+                    
                         timeOfTrigger = uint32(timeOfTrigger);
-                    end
+                   
                     windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
                     % output is (Ch x time x triggerNumber)
                     TRIG_BRFS.(fields.STIM_BRFS{ffstim}).ns2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
@@ -208,9 +208,9 @@ if contains(filename{a},'brfs')
             for singleCh = 1:contactNum 
                 for singleTrigger = 1: numTriggers.STIM_BRFS.(fields.STIM_BRFS{ffstim})
                     timeOfTrigger = STIM_BRFS.(fields.STIM_BRFS{ffstim}).start2Down(singleTrigger);
-                    if ~ispc
+                    %% IS THIS ONLY NEEDED ON MAC?
                         timeOfTrigger = uint32(timeOfTrigger);
-                    end
+                    
                     windowOfTrigger = timeOfTrigger-pre:timeOfTrigger+post;
                     % output is (Ch x time x triggerNumber)
                     TRIG_BRFS.(fields.STIM_BRFS{ffstim}).ns2LFP(singleCh,:,singleTrigger)       = ns2LFP(singleCh,windowOfTrigger); 
@@ -512,7 +512,7 @@ climitSub = [200];
 
 subplot(4,4,3)
 imagesc(TM,corticaldepth,AlFilt.subOri_PE); 
-colormap(gca,'cool');
+colormap(gca,'bone');
 % % % climitSub = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climitSub climitSub],'YDir','normal','Box','off','TickDir','out')
 hold on;
@@ -524,7 +524,7 @@ subclrbar.Label.String = 'nA/mm^3';
 
 subplot(4,4,7)
 imagesc(TM,corticaldepth,AlFilt.subOri_NPE); 
-colormap(gca,'cool');
+colormap(gca,'bone');
 % % % climitSub = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climitSub climitSub],'YDir','normal','Box','off','TickDir','out')
 hold on;
@@ -536,7 +536,7 @@ subclrbar.Label.String = 'nA/mm^3';
 
 subplot(4,4,9)
 imagesc(TM,corticaldepth,AlFilt.subEye_PS); 
-colormap(gca,'cool');
+colormap(gca,'bone');
 % % % climitSub = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climitSub climitSub],'YDir','normal','Box','off','TickDir','out')
 hold on;
@@ -548,7 +548,7 @@ subclrbar.Label.String = 'nA/mm^3';
 
 subplot(4,4,10)
 imagesc(TM,corticaldepth,AlFilt.subEye_NPS); 
-colormap(gca,'cool');
+colormap(gca,'bone');
 % % % climitSub = max(abs(get(gca,'CLim'))*.8);
 set(gca,'CLim',[-climitSub climitSub],'YDir','normal','Box','off','TickDir','out')
 hold on;
