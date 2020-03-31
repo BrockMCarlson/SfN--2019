@@ -1,4 +1,4 @@
-%BMC_alignAcrossDaysAndPlot_RFORIandBRFS.m
+ad%BMC_alignAcrossDaysAndPlot_RFORIandBRFS.m
 %GOAL: align and average across days the PEvsNPEvsPSvsNPS. The 2x2plot. The
 %RFORI sessions contain the DE response and the BRFS contain the NDE
 %response under monocular conditions.

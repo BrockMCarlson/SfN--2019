@@ -16,9 +16,9 @@
 clear
 
 %% EDITABLE VARIABLES
-filename = '160510_E_brfs001';
+filename = '160108_E_brfs001';
 if ispc
-    directory = 'G:\LaCie\all BRFS\160510_E';
+    directory = 'C:\Users\Brock\Documents\MATLAB\160108_E';
 else
     directory = '/Volumes/Drobo/DATA/NEUROPHYS/carlsobm';
 end
@@ -31,7 +31,7 @@ TM = -pre:1:post;
 tic
 %% Load session params
 if ispc
-    cd('G:\LaCie')
+    cd('C:\Users\Brock\Documents\MATLAB')
 else
     cd(directory)
 end
@@ -92,6 +92,9 @@ STIM.onsetsdown         = floor(STIM.onsets./30);
 % filter aMUA and downsample immediatly to align with STIM.onsets in 1kHz
     [aMUAdown] = filterForaMUA(ns6DAT,readNS2file,readNS6file,PARAMS);
 
+    
+    test = 1;
+    
 %% CLEAR UNNECESSARY VARIABLES
 clear ns2DAT ns6DAT 
 clear readGRATINGfile readNEVfile 
